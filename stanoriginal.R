@@ -188,8 +188,7 @@ res.inla <- inla(formula = formula,
 res.inla.hyper = inla.hyperpar(res.inla, verbose = TRUE)
 
 #Save results from INLA
-save(res.inla, res.inla.hyper, file="INLA_original.RData")
-
+save(res.inla, res.inla.hyper, stk.e, stk.pred, stk.full, file="INLA_original.RData")
 ## Analyse data with new STAN file
 # Settings
 nSamples = 80000
