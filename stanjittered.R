@@ -88,6 +88,8 @@ u.sim = L%*%rnorm(dim(L)[1])
 # Visual inspection (prediction grid)
 df = data.frame(xCor = loc.pred[,1], yCor = loc.pred[, 2], u = u.sim[-(1:nLoc)])
 df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2], u = u.sim[1:nLoc])
+df3 = data.frame(xCor = loc.jit[,1], yCor = loc.jit[, 2])
+
 ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
                      aes(xCor, yCor, fill = x1)) +
   coord_equal(xlim = c(33.5,42), ylim =c(-5,5))  +
@@ -99,7 +101,8 @@ ggplot(data = df2) + geom_point(aes(xCor,yCor,color = u)) + coord_equal(xlim = c
 # Save truth
 myData = list(obs = df2,
               pred = df,
-              truePar = list(range = range.sim,
+              jitt = df3, #we conduct the computations without changing the code structure (line 70)
+              truePar = list(range = range.sim,   #but we still want the location data of the jittered coordinates
                              spSD  = sigma.sim))
 
 # Simulate observation model
