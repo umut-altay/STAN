@@ -90,8 +90,8 @@ model{
   target += pc_range_lpdf(theta[3]|priorRange[1], priorRange[2]);
   
   // Model
-  target +=normal_lpdf(alpha|1, 100); //prior for the intercept
-  target +=normal_lpdf(beta|1, 100); //prior for the slope
+  target +=normal_lpdf(alpha|0, 100); //prior for the intercept
+  target +=normal_lpdf(beta|0, 100); //prior for the slope
   
   // Likelihood
   target += multi_normal_lpdf(y | eta, covMat); //was previously commented out
