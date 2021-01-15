@@ -266,10 +266,12 @@ saveRDS(res_stan, file = "STAN_new_jittered.RDS")
 
 ## Sample spatial effects with new STAN results
 # Extract parameter samples
-thetaSample = extract(res_stan, pars = c("sdSpatial", "range", "sdNugget"))
+thetaSample = extract(res_stan, pars = c("sdSpatial", "range", "sdNugget", "xCoor_new", "yCoor_new"))
 sdSpatialSample = thetaSample[[1]]
 rangeSample = thetaSample[[2]]
 sdNuggetSample = thetaSample[[3]]
+xCoor_new=thetaSample[[4]]
+yCoor_new=thetaSample[[5]]
 etaSample   = extract(res_stan, pars = c("eta"))[[1]]
 
 # Initialize storage
@@ -283,6 +285,7 @@ for(i in 1:dim(uSample)[1]){
   sdSpatial = sdSpatialSample[i]
   sdNugget = sdNuggetSample[i]
   
+  loc.obs = cbind(xCoor_new[i,], yCoor_new[i,])
   # Compute matrices
   dMat = as.matrix(dist(rbind(loc.obs, loc.pred)))
   SigAA = covFun(dMat[1:nLoc, 1:nLoc], range, sdSpatial) + sdNugget^2*diag(nrow = nLoc, ncol = nLoc)
