@@ -539,7 +539,6 @@ library(tidyverse)
 library(rstan)
 library(INLA)
 library(plyr) #for colwise(sd)(uSample) calculation
-inla.setOption(pardiso.license = "simulation/pardiso.lic")
 
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
@@ -554,9 +553,9 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_original=(sum(unlist(sq_difference))/2500)^0.5
 
-uSample=as.data.frame(uSample)
+sDev=apply(uSample, 2, sd)
 DS_stanOldOrig=list()
-DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
+DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -581,7 +580,6 @@ load("myDataOriginal.RData")
 library(tidyverse)
 library(rstan)
 library(INLA)
-library(plyr)
 
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
@@ -596,9 +594,9 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_original=(sum(unlist(sq_difference))/2500)^0.5
 
-uSample=as.data.frame(uSample)
+sDev=apply(uSample, 2, sd)
 DS_stanNewOrig=list()
-DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
+DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -638,9 +636,9 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
-uSample=as.data.frame(uSample)
+sDev=apply(uSample, 2, sd)
 DS_stanOldJitt=list()
-DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
+DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -680,9 +678,9 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
-uSample=as.data.frame(uSample)
+sDev=apply(uSample, 2, sd)
 DS_stanNewJitt=list()
-DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
+DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
