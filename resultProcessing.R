@@ -7,6 +7,7 @@ library(coda)
 library(INLA)
 library(rgdal)
 library(ggplot2)
+library(plyr)
 inla.setOption(pardiso.license = "simulation/pardiso.lic")
 
 
@@ -534,6 +535,12 @@ load("INLA_original.RData")
 load("STAN_old_original.RData")
 load("myDataOriginal.RData")
 
+library(tidyverse)
+library(rstan)
+library(INLA)
+library(plyr) #for colwise(sd)(uSample) calculation
+inla.setOption(pardiso.license = "simulation/pardiso.lic")
+
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
@@ -547,11 +554,12 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_original=(sum(unlist(sq_difference))/2500)^0.5
 
+uSample=as.data.frame(uSample)
 DS_stanOldOrig=list()
-DS_stanOldOrig=((myData[["pred"]][["u"]]-mean(uSample[1,]))/sd(uSample[1,]))^2+log(sd(uSample[1,])^2)
+DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
 
 sq_difference=list()
-sq_difference=(mean(uSample[1,])-myData[["pred"]][["u"]])^2
+sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stanold_original=(sum(unlist(sq_difference))/2500)^0.5
 
 boxplot(unlist(DS_stanOldOrig), horizontal=FALSE, ylim = c((min(c(unlist(DS_stanOldOrig),unlist(DS_inlaOrig)))-0.000000002), (max(c(unlist(DS_stanOldOrig), unlist(DS_inlaOrig)))+0.000000002)))
@@ -570,6 +578,11 @@ load("INLA_original.RData")
 load("STAN_new_original.RData")
 load("myDataOriginal.RData")
 
+library(tidyverse)
+library(rstan)
+library(INLA)
+library(plyr)
+
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
@@ -583,11 +596,12 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_original=(sum(unlist(sq_difference))/2500)^0.5
 
+uSample=as.data.frame(uSample)
 DS_stanNewOrig=list()
-DS_stanNewOrig=((myData[["pred"]][["u"]]-mean(uSample[1,]))/sd(uSample[1,]))^2+log(sd(uSample[1,])^2)
+DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
 
 sq_difference=list()
-sq_difference=(mean(uSample[1,])-myData[["pred"]][["u"]])^2
+sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stannew_original=(sum(unlist(sq_difference))/2500)^0.5
   
 boxplot(unlist(DS_stanNewOrig),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanNewOrig), DS_inlaOrig))-0.000000002), (max(c(unlist(DS_stanNewOrig), DS_inlaOrig))+0.000000002)))
@@ -606,6 +620,11 @@ load("INLA_jittered.RData")
 load("STAN_old_jittered.RData")
 load("myDataJittered.RData")
 
+library(tidyverse)
+library(rstan)
+library(INLA)
+library(plyr)
+
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
@@ -619,11 +638,12 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
+uSample=as.data.frame(uSample)
 DS_stanOldJitt=list()
-DS_stanOldJitt=((myData[["pred"]][["u"]]-mean(uSample[1,]))/sd(uSample[1,]))^2+log(sd(uSample[1,])^2)
+DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
 
 sq_difference=list()
-sq_difference=(mean(uSample[1,])-myData[["pred"]][["u"]])^2
+sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stanold_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
 boxplot(unlist(DS_stanOldJitt),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanOldJitt), DS_inlaJitt))-0.000000002), (max(c(unlist(DS_stanOldJitt), DS_inlaJitt))+0.000000002)))
@@ -642,6 +662,11 @@ load("INLA_jittered.RData")
 load("STAN_new_jittered.RData")
 load("myDataJittered.RData")
 
+library(tidyverse)
+library(rstan)
+library(INLA)
+library(plyr)
+
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
@@ -655,11 +680,12 @@ sq_difference=list()
 sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
 rmse_inla_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
+uSample=as.data.frame(uSample)
 DS_stanNewJitt=list()
-DS_stanNewJitt=((myData[["pred"]][["u"]]-mean(uSample[1,]))/sd(uSample[1,]))^2+log(sd(uSample[1,])^2)
+DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/(colwise(sd)(uSample)))^2+log((colwise(sd)(uSample))^2)
 
 sq_difference=list()
-sq_difference=(mean(uSample[1,])-myData[["pred"]][["u"]])^2
+sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stannew_jittered=(sum(unlist(sq_difference))/2500)^0.5
 
 boxplot(unlist(DS_stanNewJitt),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanNewJitt), DS_inlaJitt))-0.000000002), (max(c(unlist(DS_stanNewJitt), DS_inlaJitt))+0.000000002)))
