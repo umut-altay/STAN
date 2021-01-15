@@ -1,7 +1,7 @@
 rm(list = ls())
 
 # Load libraries
-library(tidyverse)
+#library(tidyverse)
 library(rstan)
 library(coda)
 library(INLA)
@@ -37,7 +37,7 @@ stan_trace(res_stan)
 ## Compare INLA and STAN New
 # Intercept
 marg.inla = res.inla.hyper$marginals.fixed[[1]]
-samples.stan = extract(res_stan, pars = "alpha")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "alpha")[[1]]
 hist(samples.stan, 50, freq = F, main = "Intercept")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -46,7 +46,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # Covariate
 marg.inla = res.inla.hyper$marginals.fixed[[2]]
-samples.stan = extract(res_stan, pars = "beta")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "beta")[[1]]
 hist(samples.stan, 50, freq = F, main = "Beta")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -55,7 +55,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Nugget std.dev.)
 marg.inla = inla.tmarginal(function(x) {-x/2}, res.inla.hyper$internal.marginals.hyperpar[[1]])
-samples.stan = extract(res_stan, pars = "theta[1]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[1]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Nugget)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -65,7 +65,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Range)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[2]]
-samples.stan = extract(res_stan, pars = "theta[3]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[3]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(Range)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -75,7 +75,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Spatial std.dev.)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[3]]
-samples.stan = extract(res_stan, pars = "theta[2]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[2]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Spatial)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -112,7 +112,7 @@ stan_trace(res_stan)
 ## Compare INLA and STAN New
 # Intercept
 marg.inla = res.inla.hyper$marginals.fixed[[1]]
-samples.stan = extract(res_stan, pars = "alpha")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "alpha")[[1]]
 hist(samples.stan, 50, freq = F, main = "Intercept")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -121,7 +121,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # Covariate
 marg.inla = res.inla.hyper$marginals.fixed[[2]]
-samples.stan = extract(res_stan, pars = "beta")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "beta")[[1]]
 hist(samples.stan, 50, freq = F, main = "Beta")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -130,7 +130,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Nugget std.dev.)
 marg.inla = inla.tmarginal(function(x) {-x/2}, res.inla.hyper$internal.marginals.hyperpar[[1]])
-samples.stan = extract(res_stan, pars = "theta[1]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[1]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Nugget)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -140,7 +140,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Range)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[2]]
-samples.stan = extract(res_stan, pars = "theta[3]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[3]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(Range)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -150,7 +150,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Spatial std.dev.)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[3]]
-samples.stan = extract(res_stan, pars = "theta[2]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[2]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Spatial)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -187,7 +187,7 @@ stan_trace(res_stan)
 ## Compare INLA and STAN New
 # Intercept
 marg.inla = res.inla.hyper$marginals.fixed[[1]]
-samples.stan = extract(res_stan, pars = "alpha")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "alpha")[[1]]
 hist(samples.stan, 50, freq = F, main = "Intercept")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -196,7 +196,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # Covariate
 marg.inla = res.inla.hyper$marginals.fixed[[2]]
-samples.stan = extract(res_stan, pars = "beta")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "beta")[[1]]
 hist(samples.stan, 50, freq = F, main = "Beta")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -205,7 +205,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Nugget std.dev.)
 marg.inla = inla.tmarginal(function(x) {-x/2}, res.inla.hyper$internal.marginals.hyperpar[[1]])
-samples.stan = extract(res_stan, pars = "theta[1]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[1]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Nugget)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -215,7 +215,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Range)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[2]]
-samples.stan = extract(res_stan, pars = "theta[3]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[3]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(Range)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -225,7 +225,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Spatial std.dev.)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[3]]
-samples.stan = extract(res_stan, pars = "theta[2]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[2]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Spatial)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -262,7 +262,7 @@ stan_trace(res_stan)
 ## Compare INLA and STAN New
 # Intercept
 marg.inla = res.inla.hyper$marginals.fixed[[1]]
-samples.stan = extract(res_stan, pars = "alpha")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "alpha")[[1]]
 hist(samples.stan, 50, freq = F, main = "Intercept")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -271,7 +271,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # Covariate
 marg.inla = res.inla.hyper$marginals.fixed[[2]]
-samples.stan = extract(res_stan, pars = "beta")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "beta")[[1]]
 hist(samples.stan, 50, freq = F, main = "Beta")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-1000, 1000, length.out = 10000)
@@ -280,7 +280,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Nugget std.dev.)
 marg.inla = inla.tmarginal(function(x) {-x/2}, res.inla.hyper$internal.marginals.hyperpar[[1]])
-samples.stan = extract(res_stan, pars = "theta[1]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[1]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Nugget)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -290,7 +290,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Range)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[2]]
-samples.stan = extract(res_stan, pars = "theta[3]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[3]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(Range)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
@@ -300,7 +300,7 @@ lines(xx, yy, lwd = 2, col = "blue")
 
 # log(Spatial std.dev.)
 marg.inla = res.inla.hyper$internal.marginals.hyperpar[[3]]
-samples.stan = extract(res_stan, pars = "theta[2]")[[1]]
+samples.stan = rstan::extract(res_stan, pars = "theta[2]")[[1]]
 hist(samples.stan, 50, freq = F, main = "log(std.dev. Spatial)")
 lines(marg.inla, lwd = 2, col = "red")
 xx = seq(-20, 20, length.out = 1000)
