@@ -7,7 +7,9 @@ library(rstan)
 library(coda)
 library(INLA)
 library(rgdal)
-library(ggplot2)
+#install.packages("spatialEco")
+library(spatialEco)
+
 inla.setOption(pardiso.license = "simulation/pardiso.lic")
 
 # Set seed
@@ -32,10 +34,24 @@ kenya.geo = subset(kenya.geo, kenya.geo$LONGNUM != 0)
 
 # Prediction grid
 xx = seq(min(kenya.geo$LONGNUM), max(kenya.geo$LONGNUM), length.out = 50)
-yy = seq(min(kenya.geo$LATNUM), max(kenya.geo$LATNUM), length.out = 50)
+yy = seq(min(kenya.geo$LATNUM), 5.5, length.out = 50) #reason for 5.5 : max(kenya.geo$LATNUM) can't capture part of the North-West upper tip of the Kenya map
 loc.pred = cbind(rep(xx, each = length(yy)), rep(yy, length(xx)))
-nPred = dim(loc.pred)[1]
 
+
+#Removing the points (that are outside the Kenya) from the grid
+#Import Kenya shape file
+kenya_shape=readOGR('simulation/kenya_administrative1/ken_admbnda_adm1_iebc_20191031.shp')
+
+#Convert prediction grid into a SpatialPointsDataFrame object 
+grid=data.frame(xCoor = loc.pred[,1], yCoor = loc.pred[, 2])
+grid <- SpatialPointsDataFrame(grid, data.frame(id=1:2500)) #we have 2500 points in the initial grid
+
+#Remove the locations that are out of Kenya
+grid=erase.point(grid, kenya_shape, inside = FALSE)
+
+#Make a new loc.pred matrix from the remaining points
+loc.pred = cbind(grid@coords[ ,1], grid@coords[ ,2])
+nPred = dim(loc.pred)[1]
 # Select 100 locations
 nLoc = 100
 idx = sample.int(dim(kenya.geo)[1], size = nLoc)
