@@ -38,7 +38,7 @@ transformed data{
 parameters {
   real alpha; // intercept
   real beta; // slope
-  real<lower=0> theta[3];// parameter
+  real theta[3];// parameter
 }
 transformed parameters{
   // Definitions

@@ -33,7 +33,7 @@ data {
 parameters {
   real alpha; // intercept
   real beta; // slope
-  real<lower=0> theta[3];// parameter
+  real theta[3];// parameter
   real <lower=0, upper=2*pi> angle[N]; // random direction angle
   real <lower=0, upper=1> dist[N]; //random displacement distance for urban locations
 }
