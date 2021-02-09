@@ -323,7 +323,7 @@ res_stan_jittered=res_stan
 rm(res_stan)
 
 #Data set of Locations
-load("myDataJittered.RData")
+load("myDataOriginal.RData")
 
 #Extract data from STAN results
 thetaSample_original = rstan::extract(res_stan_original)
@@ -365,6 +365,9 @@ observed9=data.frame(Longitude = myData[["obs"]][["xCor"]][9], Latitude = myData
 observed10=data.frame(Longitude = myData[["obs"]][["xCor"]][10], Latitude = myData[["obs"]][["yCor"]][10])
 
 #GGplot Figures
+#NOTE: the longitude and latitude values in the geom_point(aes()) part at the end
+#are directly taken from observed1, 2, 3,... data frame and copy pasted there.
+#Because the ggplot code didn't recognize them when observed1[1,1] and observed1[1,2] is used instead
 
 #Location1
 X=c(sampledLoc_original1[,1], sampledLoc_jittered1[,1])
@@ -375,7 +378,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(37.58623, 0.33945), color = "blue", size = 5) +
+  geom_point(aes(37.58482, 0.332453), color = "blue", size = 5) +
   coord_fixed(ratio = 1)
 
 
@@ -388,7 +391,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(34.75349, 0.6045782), color = "blue", size = 5) +
+  geom_point(aes(34.77663, 0.578253), color = "blue", size = 5) + 
   coord_fixed(ratio = 1)
 
 #Location3
@@ -400,7 +403,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.37971, -3.986475), color = "blue", size = 5) +
+  geom_point(aes(39.45697, -4.008023), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location4
@@ -412,7 +415,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.94585, -3.532408), color = "blue", size = 5) +
+  geom_point(aes(39.95069, -3.443292), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 
@@ -425,7 +428,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.21714, -4.5904), color = "blue", size = 5) +
+  geom_point(aes(39.20073, -4.660926), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location6
@@ -437,7 +440,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.64854, -3.829867), color = "blue", size = 5) +
+  geom_point(aes(39.63311, -3.83061), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location7
@@ -449,7 +452,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(35.78805, -0.06940715), color = "blue", size = 5) +
+  geom_point(aes(35.78934, -0.047684), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location8
@@ -461,7 +464,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.64046, -0.450423), color = "blue", size = 5) +
+  geom_point(aes(39.63916, -0.468206), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location9
@@ -473,7 +476,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.68441, -3.737138), color = "blue", size = 5) +
+  geom_point(aes(39.69075, -3.729556), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location10
@@ -485,7 +488,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(34.99275, -0.2633486), color = "blue", size = 5) +
+  geom_point(aes(34.97693, -0.283467), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 # #
 # #
@@ -603,7 +606,7 @@ setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_old_jittered.RData")
-load("myDataJittered.RData")
+load("myDataOriginal.RData")
 
 library(tidyverse)
 library(rstan)
@@ -612,10 +615,10 @@ library(plyr)
 library(RANN)
 
 #extract observation locations and prediction locations from myData
-loc.jit = cbind(myData[["jitt"]][["xCor"]], myData[["jitt"]][["yCor"]])
+loc.obs = cbind(myData[["obs"]][["xCor"]], myData[["obs"]][["yCor"]])
 loc.pred=cbind(myData[["pred"]][["xCor"]], myData[["pred"]][["yCor"]])
 #Find nearest observation location for each prediction location (and the distances between them (as degrees))
-nearestJittered=as.data.frame(RANN::nn2(loc.jit[,c(1,2)],loc.pred[,c(1,2)],k=1))
+nearestJittered=as.data.frame(RANN::nn2(loc.obs[,c(1,2)],loc.pred[,c(1,2)],k=1))
 
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
@@ -656,7 +659,7 @@ setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_new_jittered.RData")
-load("myDataJittered.RData")
+load("myDataOriginal.RData")
 
 library(tidyverse)
 library(rstan)
@@ -665,10 +668,10 @@ library(plyr)
 library(RANN)
 
 #extract observation locations and prediction locations from myData
-loc.jit = cbind(myData[["jitt"]][["xCor"]], myData[["jitt"]][["yCor"]])
+loc.obs = cbind(myData[["obs"]][["xCor"]], myData[["obs"]][["yCor"]])
 loc.pred=cbind(myData[["pred"]][["xCor"]], myData[["pred"]][["yCor"]])
 #Find nearest observation location for each prediction location (and the distances between them (as degrees))
-nearestJittered=as.data.frame(RANN::nn2(loc.jit[,c(1,2)],loc.pred[,c(1,2)],k=1))
+nearestJittered=as.data.frame(RANN::nn2(loc.obs[,c(1,2)],loc.pred[,c(1,2)],k=1))
 
 #Extracting the Prediction Mean and Standard Deviation
 index=inla.stack.index(stk.full, 'pred')$data
