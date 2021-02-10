@@ -68,16 +68,13 @@ loc.jit=as.matrix(loc.jit)
 range.sim = 1.5
 sigma.sim = 1
 
-#################
-#TO CONTINUE WITH THE JITTERED COORDINATES WITHOUT CHANGING THE STRUCTURE OF THE SCRIPT
-loc.obs=loc.jit
 ################
 #Extract prediction locations from imported data set (myDataOriginal.RData)
 loc.pred = cbind(myData[["pred"]][["xCor"]], myData[["pred"]][["yCor"]])
 nPred = dim(loc.pred)[1]
 
 # Covariance matrix
-covMat = covFun(dMat = as.matrix(dist(rbind(loc.obs, loc.pred))),
+covMat = covFun(dMat = as.matrix(dist(rbind(loc.jit, loc.pred))),
                 range = range.sim,
                 stdDev = sigma.sim)
 
@@ -87,8 +84,8 @@ u.sim = L%*%rnorm(dim(L)[1])
 
 # Visual inspection (prediction grid)
 df = data.frame(xCor = loc.pred[,1], yCor = loc.pred[, 2], u = u.sim[-(1:nLoc)])
-df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2], u = u.sim[1:nLoc])
-df3 = data.frame(xCor = loc.jit[,1], yCor = loc.jit[, 2])
+df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2])
+df3 = data.frame(xCor = loc.jit[,1], yCor = loc.jit[, 2], u = u.sim[1:nLoc])
 
 ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
                      aes(xCor, yCor, fill = x1)) +
@@ -110,7 +107,7 @@ myData = list(obs = df2,
 sigma.nugget = sqrt(0.1)
 
 # Data size
-N = length(myData$obs$xCor)
+N = length(myData$jitt$xCor)
 
 # Covariate values
 x = runif(N,-2,2)
@@ -123,25 +120,25 @@ beta0 = 1
 # Model Components
 alpha   = rep(alpha0, N)
 beta    = rep(beta0, N)
-u       = myData$obs$u
+u       = myData$jitt$u
 epsilon = rnorm(N, 0, sigma.nugget)
 
 # Assemble
 lin.pred <- alpha + beta*x + u
 y = lin.pred + epsilon
-myData$obs$y = y
-myData$obs$lin.pred = lin.pred
-myData$obs$epsilon = epsilon
+myData$jitt$y = y
+myData$jitt$lin.pred = lin.pred
+myData$jitt$epsilon = epsilon
 myData$truePar$epsSD = sigma.nugget
-myData$obs$covar = matrix(x, nrow = length(x), ncol = 1)
+myData$jitt$covar = matrix(x, nrow = length(x), ncol = 1)
 myData$truePar$alpha = alpha
 myData$truePar$beta  = beta
 
 #Save  the simulated data set
 save(myData, u.sim, kenya.geo, file="simulation/myDataJittered.RData")
 
-# Visual inspection (observations)
-ggplot(data = myData$obs) + geom_point(aes(xCor,yCor,color = y)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
+# Visual inspection (observations) (now the jittered coordinates are our observation locations)
+ggplot(data = myData$jitt) + geom_point(aes(xCor,yCor,color = y)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
 
 ## Analyse data with INLA
 # Create mesh for inference
@@ -156,17 +153,17 @@ spde.inla = inla.spde2.pcmatern(mesh = mesh.inla,
                                 prior.range = prior.range,
                                 prior.sigma = prior.sigma)
 
-# Create observation matrix
-A.obs = inla.spde.make.A(mesh = mesh.inla, loc = cbind(myData$obs$xCor, myData$obs$yCor))
+# Create observation matrix (now the jittered coordinates are our observed locations)
+A.jitt = inla.spde.make.A(mesh = mesh.inla, loc = cbind(myData$jitt$xCor, myData$jitt$yCor))
 A.pred = inla.spde.make.A(mesh = mesh.inla, loc = cbind(myData$pred$xCor, myData$pred$yCor))
 
 # Create stack
 stk.e <- inla.stack(tag='est',
-                    data=list(y = as.vector(myData$obs$y)),
-                    A=list(1, A.obs), 
+                    data=list(y = as.vector(myData$jitt$y)),
+                    A=list(1, A.jitt), 
                     effects=list(
                       list(intercept=rep(1, nLoc),
-                           x=myData$obs$covar), 
+                           x=myData$jitt$covar), 
                       list(idx.space = 1:spde.inla$n.spde)))
 stk.pred = inla.stack(tag = 'pred',
                       data = list(y = rep(NA, nPred)),
@@ -239,11 +236,11 @@ for (i in 1:100){
 }
 
 # Create Stan data object
-data.stan = list(N = length(myData$obs$y),
-                 y = as.vector(myData$obs$y),
-                 x = as.vector(myData$obs$covar),
-                 L1 = myData$obs$xCor,
-                 L2 = myData$obs$yCor,
+data.stan = list(N = length(myData$jitt$y),
+                 y = as.vector(myData$jitt$y),
+                 x = as.vector(myData$jitt$covar),
+                 L1 = myData$jitt$xCor,
+                 L2 = myData$jitt$yCor,
                  priorSigma = prior.sigma,
                  priorRange = prior.range,
                  priorNugget = prior.nugget$prec$param,
@@ -285,9 +282,9 @@ for(i in 1:dim(uSample)[1]){
   sdSpatial = sdSpatialSample[i]
   sdNugget = sdNuggetSample[i]
   
-  loc.obs = cbind(xCoor_new[i,], yCoor_new[i,])
+  loc.jitt = cbind(xCoor_new[i,], yCoor_new[i,])
   # Compute matrices
-  dMat = as.matrix(dist(rbind(loc.obs, loc.pred)))
+  dMat = as.matrix(dist(rbind(loc.jitt, loc.pred)))
   SigAA = covFun(dMat[1:nLoc, 1:nLoc], range, sdSpatial) + sdNugget^2*diag(nrow = nLoc, ncol = nLoc)
   SigAB = covFun(dMat[1:nLoc, -(1:nLoc)], range, sdSpatial)
   SigBA = t(SigAB)
@@ -316,11 +313,11 @@ nSamples = 80000
 model_stan = stan_model("simulation/stan_old.stan")
 
 # Create Stan data object
-data.stan = list(N = length(myData$obs$y),
-                 y = as.vector(myData$obs$y),
-                 x = as.vector(myData$obs$covar),
-                 L1 = myData$obs$xCor,
-                 L2 = myData$obs$yCor,
+data.stan = list(N = length(myData$jitt$y),
+                 y = as.vector(myData$jitt$y),
+                 x = as.vector(myData$jitt$covar),
+                 L1 = myData$jitt$xCor,
+                 L2 = myData$jitt$yCor,
                  priorSigma = prior.sigma,
                  priorRange = prior.range,
                  priorNugget = prior.nugget$prec$param,
@@ -356,7 +353,7 @@ for(i in 1:dim(uSample)[1]){
   sdNugget = sdNuggetSample[i]
   
   # Compute matrices
-  dMat = as.matrix(dist(rbind(loc.obs, loc.pred)))
+  dMat = as.matrix(dist(rbind(loc.jitt, loc.pred)))
   SigAA = covFun(dMat[1:nLoc, 1:nLoc], range, sdSpatial) + sdNugget^2*diag(nrow = nLoc, ncol = nLoc)
   SigAB = covFun(dMat[1:nLoc, -(1:nLoc)], range, sdSpatial)
   SigBA = t(SigAB)
