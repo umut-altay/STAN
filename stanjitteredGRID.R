@@ -47,8 +47,30 @@ covFun = function(dMat, range, stdDev){
 # #observation locations
 loc.obs = cbind(myData[["obs"]][["xCor"]], myData[["obs"]][["yCor"]])
 nLoc = length(loc.obs[,1])
-#locations obtained by randomly jittering the observation locations (0-6 and 0-15 km jittereing for urban and rural observation locations)
-u_r=kenya.geo@data[["URBAN_RURA"]]
+#locations obtained by randomly jittering the observation locations (0-6 and 0-15 km jittering for urban and rural observation locations)
+
+#Import Kenya shape file
+kenya_shape=readOGR('simulation_uniform/kenya_administrative1/ken_admbnda_adm1_iebc_20191031.shp')
+
+install.packages("sp")
+library(sp)
+c=data.frame(loc.obs[,1], loc.obs[,2])
+c <- SpatialPointsDataFrame(c, data.frame(id=1:length(loc.obs[,1])))
+CRS.new=CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(c)=CRS.new 
+identicalCRS(kenya_shape,c)
+res <- over(c, kenya_shape)
+
+u_r=rep(0,length(loc.obs[,1])) #a vector which represents location types (urban/rural)
+for (i in 1:length(loc.obs[,1])){
+  if (res$ADM1_EN[[i]]=="Nairobi"|res$ADM1_EN[[i]]=="Kwale"|res$ADM1_EN[[i]]=="Kilifi"|res$ADM1_EN[[i]]=="Tana River"|res$ADM1_EN[[i]]=="Lamu"|res$ADM1_EN[[i]]=="Taita Taveta"|res$ADM1_EN[[i]]=="Bungoma"|res$ADM1_EN[[i]]=="Busia"|res$ADM1_EN[[i]]=="Kakamega"|res$ADM1_EN[[i]]=="Kiambu"|res$ADM1_EN[[i]]=="Kisii"){
+    u_r[i]="U" #urban
+  } else {
+    u_r[i]="R" #rural
+  }
+}
+
+
 source("simulation_grid/functions3.R")
 #Random Distances
 distance3 = list()
@@ -226,12 +248,21 @@ nSamples = 80000
 model_stan = stan_model("simulation_grid/stan_new.stan")
 
 #creating the variable called "type". it refers to the location type (urban or rural)
-type=rep(0, 100)
-for (i in 1:100){
-  if (kenya.geo@data[["URBAN_RURA"]][[i]]=="U") {
-    type[[i]]=1 
+install.packages("sp")
+library(sp)
+c=data.frame(loc.obs[,1], loc.obs[,2])
+c <- SpatialPointsDataFrame(c, data.frame(id=1:length(loc.obs[,1])))
+CRS.new=CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(c)=CRS.new 
+identicalCRS(kenya_shape,c)
+res <- over(c, kenya_shape)
+
+type=rep(0,length(loc.obs[,1])) #a vector which represents location types (urban/rural)
+for (i in 1:length(loc.obs[,1])){
+  if (res$ADM1_EN[[i]]=="Nairobi"|res$ADM1_EN[[i]]=="Kwale"|res$ADM1_EN[[i]]=="Kilifi"|res$ADM1_EN[[i]]=="Tana River"|res$ADM1_EN[[i]]=="Lamu"|res$ADM1_EN[[i]]=="Taita Taveta"|res$ADM1_EN[[i]]=="Bungoma"|res$ADM1_EN[[i]]=="Busia"|res$ADM1_EN[[i]]=="Kakamega"|res$ADM1_EN[[i]]=="Kiambu"|res$ADM1_EN[[i]]=="Kisii"){
+    type[i]=1 #urban
   } else {
-    type[[i]]=2
+    type[i]=2 #rural
   }
 }
 

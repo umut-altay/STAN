@@ -55,7 +55,7 @@ nPred = dim(loc.pred)[1]
 
 
 # Observation locations that are randomly chosen from a uniform distribution
-loc.obs=data.frame(xCoor=runif(160, min=min(kenya.geo$LONGNUM), max=max(kenya.geo$LONGNUM)), yCoor=runif(160, min=min(kenya.geo$LATNUM), max=max(kenya.geo$LATNUM)))
+loc.obs=data.frame(xCoor=runif(250, min=min(kenya.geo$LONGNUM), max=max(kenya.geo$LONGNUM)), yCoor=runif(250, min=min(kenya.geo$LATNUM), max=max(kenya.geo$LATNUM)))
 
 #Removing the points (that are outside the Kenya) from the grid
 
@@ -68,7 +68,11 @@ loc.obs=erase.point(loc.obs, kenya_shape, inside = FALSE)
 
 #Make a new loc.pred matrix from the remaining points
 loc.obs = cbind(loc.obs@coords[ ,1], loc.obs@coords[ ,2])
-nLoc = dim(loc.obs)[1]
+# Select 100 locations
+nLoc = 100
+idx = sample.int(dim(loc.obs)[1], size = nLoc)
+loc.obs = loc.obs[idx,]
+
 
 ## Simulate spatial effect
 # Desired parameters
@@ -224,12 +228,21 @@ nSamples = 80000
 model_stan = stan_model("simulation_uniform/stan_new.stan")
 
 #creating the variable called "type". it refers to the location type (urban or rural)
-type=rep(0, 100)
-for (i in 1:100){
-  if (kenya.geo@data[["URBAN_RURA"]][[i]]=="U") {
-    type[[i]]=1 
+install.packages("sp")
+library(sp)
+c=data.frame(loc.obs[,1], loc.obs[,2])
+c <- SpatialPointsDataFrame(c, data.frame(id=1:length(loc.obs[,1])))
+CRS.new=CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(c)=CRS.new 
+identicalCRS(kenya_shape,c)
+res <- over(c, kenya_shape)
+
+type=rep(0,length(loc.obs[,1])) #a vector which represents location types (urban/rural)
+for (i in 1:length(loc.obs[,1])){
+  if (res$ADM1_EN[[i]]=="Nairobi"|res$ADM1_EN[[i]]=="Kwale"|res$ADM1_EN[[i]]=="Kilifi"|res$ADM1_EN[[i]]=="Tana River"|res$ADM1_EN[[i]]=="Lamu"|res$ADM1_EN[[i]]=="Taita Taveta"|res$ADM1_EN[[i]]=="Bungoma"|res$ADM1_EN[[i]]=="Busia"|res$ADM1_EN[[i]]=="Kakamega"|res$ADM1_EN[[i]]=="Kiambu"|res$ADM1_EN[[i]]=="Kisii"){
+    type[i]=1 #urban
   } else {
-    type[[i]]=2
+    type[i]=2 #rural
   }
 }
 

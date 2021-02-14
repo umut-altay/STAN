@@ -89,13 +89,13 @@ u.sim = L%*%rnorm(dim(L)[1])
 # Visual inspection (prediction grid)
 df = data.frame(xCor = loc.pred[,1], yCor = loc.pred[, 2], u = u.sim[-(1:nLoc)])
 df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2], u = u.sim[1:nLoc])
-ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
-                     aes(xCor, yCor, fill = x1)) +
-  coord_equal(xlim = c(33.5,42), ylim =c(-5,5))  +
-  geom_point(data = df2, aes(xCor,yCor), size = 0.2)
-
-# Visual inspection (spatial observations)
-ggplot(data = df2) + geom_point(aes(xCor,yCor,color = u)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
+# ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
+#                      aes(xCor, yCor, fill = x1)) +
+#   coord_equal(xlim = c(33.5,42), ylim =c(-5,5))  +
+#   geom_point(data = df2, aes(xCor,yCor), size = 0.2)
+# 
+# # Visual inspection (spatial observations)
+# ggplot(data = df2) + geom_point(aes(xCor,yCor,color = u)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
 
 # Save truth
 myData = list(obs = df2,
@@ -226,14 +226,24 @@ nSamples = 80000
 model_stan = stan_model("simulation_grid/stan_new.stan")
 
 #creating the variable called "type". it refers to the location type (urban or rural)
-type=rep(0, 100)
-for (i in 1:100){
-  if (kenya.geo@data[["URBAN_RURA"]][[i]]=="U") {
-    type[[i]]=1 
+install.packages("sp")
+library(sp)
+c=data.frame(loc.obs[,1], loc.obs[,2])
+c <- SpatialPointsDataFrame(c, data.frame(id=1:length(loc.obs[,1])))
+CRS.new=CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(c)=CRS.new 
+identicalCRS(kenya_shape,c)
+res <- over(c, kenya_shape)
+
+type=rep(0,length(loc.obs[,1])) #a vector which represents location types (urban/rural)
+for (i in 1:length(loc.obs[,1])){
+  if (res$ADM1_EN[[i]]=="Nairobi"|res$ADM1_EN[[i]]=="Kwale"|res$ADM1_EN[[i]]=="Kilifi"|res$ADM1_EN[[i]]=="Tana River"|res$ADM1_EN[[i]]=="Lamu"|res$ADM1_EN[[i]]=="Taita Taveta"|res$ADM1_EN[[i]]=="Bungoma"|res$ADM1_EN[[i]]=="Busia"|res$ADM1_EN[[i]]=="Kakamega"|res$ADM1_EN[[i]]=="Kiambu"|res$ADM1_EN[[i]]=="Kisii"){
+    type[i]=1 #urban
   } else {
-    type[[i]]=2
+    type[i]=2 #rural
   }
 }
+
 
 # Create Stan data object
 data.stan = list(N = length(myData$obs$y),
