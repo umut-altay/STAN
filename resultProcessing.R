@@ -13,7 +13,7 @@ inla.setOption(pardiso.license = "simulation/pardiso.lic")
 #POSTERIOR DISTRIBUTION GRAPHS WITH THE NEW STAN BASED ON THE ORIGINAL COORDINATES
 
 #Set the working directory
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/UNIFORM"
 setwd(directory)
 
 #Results from new STAN with original coordinates
@@ -87,8 +87,8 @@ rm(list = ls())
 #POSTERIOR DISTRIBUTION GRAPHS WITH THE OLD STAN BASED ON THE ORIGINAL COORDINATES
 
 #Set the working directory
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 #Results from new STAN with original coordinates
 load("STAN_old_original.RData")
@@ -161,8 +161,8 @@ rm(list = ls())
 #POSTERIOR DISTRIBUTION GRAPHS WITH THE NEW STAN BASED ON THE JITTERED COORDINATES
 
 #Set the working directory
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 #Results from new STAN with original coordinates
 load("STAN_new_jittered.RData")
@@ -235,8 +235,8 @@ rm(list = ls())
 #POSTERIOR DISTRIBUTION GRAPHS WITH THE OLD STAN BASED ON THE JITTERED COORDINATES
 
 #Set the working directory
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 #Results from new STAN with original coordinates
 load("STAN_old_jittered.RData")
@@ -311,8 +311,8 @@ rm(list = ls())
 
 library(rstan)
 
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("STAN_new_original.RData")
 res_stan_original=res_stan
@@ -378,7 +378,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(37.58482, 0.332453), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][1], myData[["obs"]][["yCor"]][1]), color = "blue", size = 5) +
   coord_fixed(ratio = 1)
 
 
@@ -391,7 +391,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(34.77663, 0.578253), color = "blue", size = 5) + 
+  geom_point(aes(myData[["obs"]][["xCor"]][2], myData[["obs"]][["yCor"]][2]), color = "blue", size = 5) + 
   coord_fixed(ratio = 1)
 
 #Location3
@@ -403,7 +403,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.45697, -4.008023), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][3], myData[["obs"]][["yCor"]][3]), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location4
@@ -415,7 +415,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.95069, -3.443292), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][4], myData[["obs"]][["yCor"]][4]), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 
@@ -428,7 +428,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.20073, -4.660926), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][5], myData[["obs"]][["yCor"]][5]), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location6
@@ -440,7 +440,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.63311, -3.83061), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][6], myData[["obs"]][["yCor"]][6]), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location7
@@ -452,7 +452,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(35.78934, -0.047684), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][7], myData[["obs"]][["yCor"]][7]), color = "blue", size = 5) +
   coord_fixed(ratio = 1)   
 
 #Location8
@@ -464,7 +464,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.63916, -0.468206), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][8], myData[["obs"]][["yCor"]][8]), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location9
@@ -476,7 +476,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(39.69075, -3.729556), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][9], myData[["obs"]][["yCor"]][9]), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 
 #Location10
@@ -488,7 +488,7 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
   stat_density_2d(geom = "polygon",
                   aes(alpha = ..level.., fill = Label),
                   bins = 20) +
-  geom_point(aes(34.97693, -0.283467), color = "blue", size = 5) +
+  geom_point(aes(myData[["obs"]][["xCor"]][10], myData[["obs"]][["yCor"]][10]), color = "blue", size = 5) +
   coord_fixed(ratio = 1) 
 # #
 # #
@@ -496,8 +496,8 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Original Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("INLA_original.RData")
 load("STAN_old_original.RData")
@@ -548,8 +548,8 @@ save(rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RDat
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("INLA_original.RData")
 load("STAN_new_original.RData")
@@ -601,8 +601,8 @@ save(rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="res
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Jittered Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_old_jittered.RData")
@@ -654,8 +654,8 @@ save(rmse_inla_jittered, rmse_stanold_jittered, distClass_oldJittered, file="res
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Jittered Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_new_jittered.RData")
@@ -707,8 +707,8 @@ save(rmse_stannew_jittered, distClass_newJittered, file="resultsNewJittered.RDat
 
 #Tabulation of RMSE values
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -720,20 +720,12 @@ rmse=data.frame(Type=c("Original", "Jittered"), INLA=c(rmse_inla_original, rmse_
 xtable(rmse)
 
 
-
-
-
-
-
-
-
-
 #Splitting the data into 10 classes with respect to the distances and calculating average DS scores for each class
 
 #For New STAN and Original Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -762,8 +754,8 @@ xtable(avrScores_newOriginal)
 
 #For Old STAN and Original Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -793,8 +785,8 @@ xtable(avrScores_oldOriginal)
 
 #For New STAN and Jittered Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -824,8 +816,8 @@ xtable(avrScores_newJittered)
 
 #For Old STAN and Jittered Coordinates
 rm(list = ls())
-directory="~/Desktop/STAN sampling"
-setwd(directory)
+# directory="~/Desktop/STAN sampling"
+# setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
