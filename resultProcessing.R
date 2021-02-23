@@ -526,17 +526,18 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 DS_inlaOrig=list()
 DS_inlaOrig=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
 
-sq_difference=list()
-sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
-rmse_inla_original=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_inlaOrig=list()
+sq_difference_inlaOrig=(mean_pred-myData[["pred"]][["u"]])^2
+rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
+
 
 sDev=apply(uSample, 2, sd)
 DS_stanOldOrig=list()
 DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
-sq_difference=list()
-sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
-rmse_stanold_original=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_stanOldOrig=list()
+sq_difference_stanOldOrig=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
+rmse_stanold_original=(sum(unlist(sq_difference_stanOldOrig))/1433)^0.5
 
 #DS without separation with respect to neighbourhood distances
 DS_inlaOrigAVG=mean(unlist(DS_inlaOrig))
@@ -544,14 +545,14 @@ DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
 
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_oldOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanOldOrig)
+distClass_oldOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanOldOrig, sqrDiff_inla = sq_difference_inlaOrig, sqrDiff_stan = sq_difference_stanOldOrig)
 
 boxplot(unlist(DS_stanOldOrig), horizontal=FALSE, ylim = c((min(c(unlist(DS_stanOldOrig),unlist(DS_inlaOrig)))-0.000000002), (max(c(unlist(DS_stanOldOrig), unlist(DS_inlaOrig)))+0.000000002)))
 title(sub ="DS Scores STAN old-original", line = 0)
 abline(h=mean(unlist(DS_stanOldOrig)), col ="red")   #its own mean      
 abline(h=mean(unlist(DS_inlaOrig)), col ="blue") #mean crps obtained from INLA
 
-save(rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
+save(rmse_inla_original, rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
 save(DS_inlaOrigAVG, DS_stanOldOrigAvg, DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginalUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
@@ -580,13 +581,16 @@ index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
 sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 
+
+
 #DS scores and RMSE from original coordinates
 DS_inlaOrig=list()
 DS_inlaOrig=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
 
-sq_difference=list()
-sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
-rmse_inla_original=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_inlaOrig=list()
+sq_difference_inlaOrig=(mean_pred-myData[["pred"]][["u"]])^2
+rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
+
 
 sDev=apply(uSample, 2, sd)
 DS_stanNewOrig=list()
@@ -596,14 +600,13 @@ DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 #DS without separation with respect to neighbourhood distances
 DS_stanNewOrigAvg=mean(unlist(DS_stanNewOrig))
 
-
-sq_difference=list()
-sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
-rmse_stannew_original=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_stanNewOrig=list()
+sq_difference_stanNewOrig=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
+rmse_stannew_original=(sum(unlist(sq_difference_stanNewOrig))/1433)^0.5
   
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_newOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanNewOrig)
+distClass_newOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanNewOrig, sqrDiff_inla = sq_difference_inlaOrig, sqrDiff_stan = sq_difference_stanOldOrig)
 
 boxplot(unlist(DS_stanNewOrig),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanNewOrig), DS_inlaOrig))-0.000000002), (max(c(unlist(DS_stanNewOrig), DS_inlaOrig))+0.000000002)))
 title(sub ="DS Scores STAN new-original", line = 0)
@@ -643,9 +646,9 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
 
-sq_difference=list()
-sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
-rmse_inla_jittered=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_inlaJitt=list()
+sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
+rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 
 sDev=apply(uSample, 2, sd)
 DS_stanOldJitt=list()
@@ -658,13 +661,13 @@ DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
 
 
 
-sq_difference=list()
-sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
-rmse_stanold_jittered=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_stanOldJitt=list()
+sq_difference_stanOldJitt=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
+rmse_stanold_jittered=(sum(unlist(sq_difference_stanOldJitt))/1433)^0.5
 
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_oldJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanOldJitt)
+distClass_oldJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanOldJitt, sqrDiff_inla = sq_difference_inlaJitt, sqrDiff_stan = sq_difference_stanOldOrig)
 
 boxplot(unlist(DS_stanOldJitt),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanOldJitt), DS_inlaJitt))-0.000000002), (max(c(unlist(DS_stanOldJitt), DS_inlaJitt))+0.000000002)))
 title(sub ="DS Scores STAN old-jittered", line = 0)
@@ -700,13 +703,13 @@ index=inla.stack.index(stk.full, 'pred')$data
 mean_pred = res.inla.hyper$summary.linear.predictor[index, "mean"]
 sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 
-#DS scores and RMSE from original coordinates
+#DS scores and RMSE from jittered coordinates
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
 
-sq_difference=list()
-sq_difference=(mean_pred-myData[["pred"]][["u"]])^2
-rmse_inla_jittered=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_inlaJitt=list()
+sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
+rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 
 sDev=apply(uSample, 2, sd)
 DS_stanNewJitt=list()
@@ -717,13 +720,13 @@ DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
 
 
-sq_difference=list()
-sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
-rmse_stannew_jittered=(sum(unlist(sq_difference))/1433)^0.5
+sq_difference_stanNewJittered=list()
+sq_difference_stanNewJittered=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
+rmse_stannew_jittered=(sum(unlist(sq_difference_stanNewJittered))/1433)^0.5
 
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_newJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanNewJitt)
+distClass_newJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanNewJitt, sqrDiff_inla = sq_difference_inlaJitt, sqrDiff_stan = sq_difference_stanNewJittered)
 
 boxplot(unlist(DS_stanNewJitt),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanNewJitt), DS_inlaJitt))-0.000000002), (max(c(unlist(DS_stanNewJitt), DS_inlaJitt))+0.000000002)))
 title(sub ="DS Scores STAN new-jittered", line = 0)
