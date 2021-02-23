@@ -2,6 +2,8 @@
 # Clear the environment
 rm(list = ls())
 
+start_all=Sys.time()
+
 # Load libraries
 library(rstan)
 library(coda)
@@ -87,13 +89,13 @@ df = data.frame(xCor = loc.pred[,1], yCor = loc.pred[, 2], u = u.sim[-(1:nLoc)])
 df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2])
 df3 = data.frame(xCor = loc.jit[,1], yCor = loc.jit[, 2], u = u.sim[1:nLoc])
 
-ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
-                     aes(xCor, yCor, fill = x1)) +
-  coord_equal(xlim = c(33.5,42), ylim =c(-5,5))  +
-  geom_point(data = df2, aes(xCor,yCor), size = 0.2)
-
-# Visual inspection (spatial observations)
-ggplot(data = df2) + geom_point(aes(xCor,yCor,color = u)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
+# ggplot() + geom_tile(data = data.frame(df, x1 = u.sim[-(1:nLoc)]), 
+#                      aes(xCor, yCor, fill = x1)) +
+#   coord_equal(xlim = c(33.5,42), ylim =c(-5,5))  +
+#   geom_point(data = df2, aes(xCor,yCor), size = 0.2)
+# 
+# # Visual inspection (spatial observations)
+# ggplot(data = df2) + geom_point(aes(xCor,yCor,color = u)) + coord_equal(xlim = c(33.5,42), ylim =c(-5,5))
 
 # Save truth
 myData = list(obs = df2,
@@ -197,6 +199,7 @@ prec.beta = 1e-4
 #                                         A=inla.stack.A(stk.full)),
 #                  verbose = TRUE)
 
+start_INLA=Sys.time()
 
 res.inla <- inla(formula = formula,
                  data=inla.stack.data(stk.full, spde.inla = spde.inla),
@@ -213,6 +216,8 @@ res.inla <- inla(formula = formula,
 
 # Run inla hyperpar
 res.inla.hyper = inla.hyperpar(res.inla, verbose = TRUE)
+
+end_INLA=Sys.time()
 
 #Save results from INLA
 save(res.inla, res.inla.hyper, stk.e, stk.pred, stk.full, file="INLA_jittered.RData")
@@ -250,6 +255,8 @@ data.stan = list(N = length(myData$jitt$y),
                  max_rural = 15/111,
                  pi = pi)
 
+start_newSTAN=Sys.time()
+
 # Run Stan
 res_stan = sampling(model_stan,
                     data = data.stan,
@@ -257,6 +264,8 @@ res_stan = sampling(model_stan,
                     iter = nSamples,
                     init = 0.5,
                     thin = 8)
+
+end_newSTAN=Sys.time()
 
 saveRDS(res_stan, file = "STAN_new_jittered.RDS")
 
@@ -273,6 +282,8 @@ etaSample   = extract(res_stan, pars = c("eta"))[[1]]
 
 # Initialize storage
 uSample = matrix(NA, nrow = length(sdSpatialSample), ncol = nPred)
+
+start_sampNewSTAN=Sys.time()
 
 # Run through samples
 for(i in 1:dim(uSample)[1]){
@@ -299,6 +310,8 @@ for(i in 1:dim(uSample)[1]){
   uSample[i,] = muC + as.vector(L%*%rnorm(nPred))
 }
 
+end_sampNewSTAN=Sys.time()
+
 #Save results from analysis with new STAN file
 save(res_stan, data.stan, uSample, thetaSample, sdSpatialSample, rangeSample, sdNuggetSample, etaSample, file="STAN_new_jittered.RData")
 
@@ -322,6 +335,9 @@ data.stan = list(N = length(myData$jitt$y),
                  priorRange = prior.range,
                  priorNugget = prior.nugget$prec$param,
                  nu = 1)
+
+start_oldSTAN=Sys.time()
+
 # Run Stan
 res_stan = sampling(model_stan,
                     data = data.stan,
@@ -329,6 +345,8 @@ res_stan = sampling(model_stan,
                     iter = nSamples,
                     init = 0.5,
                     thin = 8)
+
+end_oldSTAN=Sys.time()
 
 saveRDS(res_stan, file = "STAN_old_jittered.RDS")
 
@@ -343,6 +361,8 @@ etaSample   = extract(res_stan, pars = c("eta"))[[1]]
 
 # Initialize storage
 uSample = matrix(NA, nrow = length(sdSpatialSample), ncol = nPred)
+
+start_sampOldSTAN=Sys.time()
 
 # Run through samples
 for(i in 1:dim(uSample)[1]){
@@ -368,6 +388,11 @@ for(i in 1:dim(uSample)[1]){
   uSample[i,] = muC + as.vector(L%*%rnorm(nPred))
 }
 
+end_sampOldSTAN=Sys.time()
+end_all=Sys.time()
+
+#save system time measurements
+save(start_all, start_INLA, end_INLA, start_newSTAN, end_newSTAN, start_sampNewSTAN, end_sampNewSTAN, start_oldSTAN, end_oldSTAN, start_sampOldSTAN, end_sampOldSTAN, end_all, file="time_initialJittered.RData")
 
 #Save results from analysis with old STAN file
 save(res_stan, data.stan, uSample, thetaSample, sdSpatialSample, rangeSample, sdNuggetSample, etaSample, file="STAN_old_jittered.RData")

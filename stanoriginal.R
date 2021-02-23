@@ -2,6 +2,8 @@
 # Clear the environment
 rm(list = ls())
 
+start_all=Sys.time()
+
 # Load libraries
 library(rstan)
 library(coda)
@@ -185,6 +187,7 @@ prec.beta = 1e-4
 #                                         A=inla.stack.A(stk.full)),
 #                  verbose = TRUE)
 
+start_INLA=Sys.time()
 
 res.inla <- inla(formula = formula,
                  data=inla.stack.data(stk.full, spde.inla = spde.inla),
@@ -202,6 +205,8 @@ res.inla <- inla(formula = formula,
 
 # Run inla hyperpar
 res.inla.hyper = inla.hyperpar(res.inla, verbose = TRUE)
+
+end_INLA=Sys.time()
 
 #Save results from INLA
 save(res.inla, res.inla.hyper, stk.e, stk.pred, stk.full, file="INLA_original.RData")
@@ -238,6 +243,8 @@ data.stan = list(N = length(myData$obs$y),
                      max_rural = 15/111,
                      pi = pi)
 
+start_newSTAN=Sys.time()
+
 # Run Stan
 res_stan = sampling(model_stan,
                         data = data.stan,
@@ -245,6 +252,7 @@ res_stan = sampling(model_stan,
                         iter = nSamples,
                         init = 0.5,
                         thin = 8)
+end_newSTAN=Sys.time()
 
 saveRDS(res_stan, file = "STAN_new_original.RDS")
 
@@ -260,6 +268,8 @@ etaSample   = extract(res_stan, pars = c("eta"))[[1]]
 
 # Initialize storage
 uSample = matrix(NA, nrow = length(sdSpatialSample), ncol = nPred)
+
+start_sampNewSTAN=Sys.time()
 
 # Run through samples
 for(i in 1:dim(uSample)[1]){
@@ -286,6 +296,8 @@ for(i in 1:dim(uSample)[1]){
   uSample[i,] = muC + as.vector(L%*%rnorm(nPred))
 }
 
+end_sampNewSTAN=Sys.time()
+
 #Save results from analysis with new STAN file
 save(res_stan, data.stan, uSample, thetaSample, sdSpatialSample, rangeSample, sdNuggetSample, etaSample, file="STAN_new_original.RData")
 
@@ -309,6 +321,9 @@ data.stan = list(N = length(myData$obs$y),
                      priorRange = prior.range,
                      priorNugget = prior.nugget$prec$param,
                      nu = 1)
+
+start_oldSTAN=Sys.time()
+
 # Run Stan
 res_stan = sampling(model_stan,
                         data = data.stan,
@@ -316,6 +331,8 @@ res_stan = sampling(model_stan,
                         iter = nSamples,
                         init = 0.5,
                         thin = 8)
+
+end_oldSTAN=Sys.time()
 
 saveRDS(res_stan, file = "STAN_old_original.RDS")
 
@@ -330,6 +347,8 @@ etaSample   = extract(res_stan, pars = c("eta"))[[1]]
 
 # Initialize storage
 uSample = matrix(NA, nrow = length(sdSpatialSample), ncol = nPred)
+
+start_sampOldSTAN=Sys.time()
 
 # Run through samples
 for(i in 1:dim(uSample)[1]){
@@ -355,8 +374,14 @@ for(i in 1:dim(uSample)[1]){
   uSample[i,] = muC + as.vector(L%*%rnorm(nPred))
 }
 
+end_sampOldSTAN=Sys.time()
 
+
+end_all=Sys.time()
+#save system time measurements
+save(start_all, start_INLA, end_INLA, start_newSTAN, end_newSTAN, start_sampNewSTAN, end_sampNewSTAN, start_oldSTAN, end_oldSTAN, start_sampOldSTAN, end_sampOldSTAN, end_all, file="time_initialOriginal.RData")
 #Save results from analysis with old STAN file
 save(res_stan, data.stan, uSample, thetaSample, sdSpatialSample, rangeSample, sdNuggetSample, etaSample, file="STAN_old_original.RData")
+
 
 quit()

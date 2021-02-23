@@ -14,6 +14,9 @@ inla.setOption(pardiso.license = "simulation/pardiso.lic")
 
 #Set the working directory
 directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
 setwd(directory)
 
 #Results from new STAN with original coordinates
@@ -545,6 +548,7 @@ abline(h=mean(unlist(DS_stanOldOrig)), col ="red")   #its own mean
 abline(h=mean(unlist(DS_inlaOrig)), col ="blue") #mean crps obtained from INLA
 
 save(rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
+save(DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginalUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
 rm(list = ls())
@@ -598,6 +602,7 @@ abline(h=mean(DS_stanNewOrig), col ="red")   #its own mean
 abline(h=mean(DS_inlaOrig), col ="blue") #mean crps obtained from INLA
   
 save(rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
+save(DS_stanNewOrig, file = "DSnewOriginalUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Jittered Coordinates
 rm(list = ls())
@@ -651,6 +656,7 @@ abline(h=mean(DS_stanOldJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_jittered, rmse_stanold_jittered, distClass_oldJittered, file="resultsOldJittered.RData")
+save(DS_inlaJitt, DS_stanOldJitt, file = "DSoldJitteredUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Jittered Coordinates
 rm(list = ls())
@@ -704,6 +710,7 @@ abline(h=mean(DS_stanNewJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_stannew_jittered, distClass_newJittered, file="resultsNewJittered.RData")
+save(DS_stanNewJitt, file = "DSnewJitteredUniform.RData")
 
 #Tabulation of RMSE values
 rm(list = ls())
@@ -843,3 +850,48 @@ avrScores_oldJittered=data.frame(avrScores_oldJittered,Lower = km[1:10], Upper =
 
 library(xtable)
 xtable(avrScores_oldJittered)
+
+
+
+#Plotting Original and Jittered DS Scores Against Each Other
+
+#Initial
+directory="~/Desktop/STAN sampling"
+setwd(directory)
+
+load("DSnewJittered.RData")
+load("DSoldJittered.RData")
+load("DSnewOriginal.RData")
+load("DSnewOriginal.RData")
+
+#Uniform
+directory="~/Desktop/STAN sampling/UNIFORM"
+setwd(directory)
+
+load("DSnewJitteredUniform.RData")
+load("DSoldJitteredUniform.RData")
+load("DSnewOriginalUniform.RData")
+load("DSnewOriginalUniform.RData")
+
+#Grid
+directory="~/Desktop/STAN sampling/GRID"
+setwd(directory)
+
+load("DSnewJitteredGrid.RData")
+load("DSoldJitteredGrid.RData")
+load("DSnewOriginalGrid.RData")
+load("DSnewOriginalGrid.RData")
+
+plot(DS_stanOldOrig, DS_stanOldJitt)
+
+
+
+
+
+
+
+
+
+
+
+
