@@ -538,6 +538,10 @@ sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stanold_original=(sum(unlist(sq_difference))/1433)^0.5
 
+#DS without separation with respect to neighbourhood distances
+DS_inlaOrigAVG=mean(unlist(DS_inlaOrig))
+DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
+
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
 distClass_oldOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanOldOrig)
@@ -548,7 +552,7 @@ abline(h=mean(unlist(DS_stanOldOrig)), col ="red")   #its own mean
 abline(h=mean(unlist(DS_inlaOrig)), col ="blue") #mean crps obtained from INLA
 
 save(rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
-save(DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginalUniform.RData")
+save(DS_inlaOrigAVG, DS_stanOldOrigAvg, DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginalUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
 rm(list = ls())
@@ -588,6 +592,11 @@ sDev=apply(uSample, 2, sd)
 DS_stanNewOrig=list()
 DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
+
+#DS without separation with respect to neighbourhood distances
+DS_stanNewOrigAvg=mean(unlist(DS_stanNewOrig))
+
+
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stannew_original=(sum(unlist(sq_difference))/1433)^0.5
@@ -601,7 +610,7 @@ title(sub ="DS Scores STAN new-original", line = 0)
 abline(h=mean(DS_stanNewOrig), col ="red")   #its own mean      
 abline(h=mean(DS_inlaOrig), col ="blue") #mean crps obtained from INLA
   
-save(rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
+save(DS_stanNewOrigAvg, rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
 save(DS_stanNewOrig, file = "DSnewOriginalUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Jittered Coordinates
@@ -642,6 +651,13 @@ sDev=apply(uSample, 2, sd)
 DS_stanOldJitt=list()
 DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
 
+
+#DS without separation with respect to neighbourhood distances
+DS_inlaJittAVG=mean(unlist(DS_inlaJitt))
+DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
+
+
+
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stanold_jittered=(sum(unlist(sq_difference))/1433)^0.5
@@ -656,7 +672,7 @@ abline(h=mean(DS_stanOldJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_jittered, rmse_stanold_jittered, distClass_oldJittered, file="resultsOldJittered.RData")
-save(DS_inlaJitt, DS_stanOldJitt, file = "DSoldJitteredUniform.RData")
+save(DS_inlaJittAVG, DS_stanOldJittAvg, DS_inlaJitt, DS_stanOldJitt, file = "DSoldJitteredUniform.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Jittered Coordinates
 rm(list = ls())
@@ -695,6 +711,11 @@ rmse_inla_jittered=(sum(unlist(sq_difference))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanNewJitt=list()
 DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
+
+
+#DS without separation with respect to neighbourhood distances
+DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
+
 
 sq_difference=list()
 sq_difference=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
