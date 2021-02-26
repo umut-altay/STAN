@@ -530,7 +530,6 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from original coordinates
 DS_inlaOrig=list()
 DS_inlaOrig=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
-DS_inlaOrigAVG=mean(unlist(DS_inlaOrig))
 
 sq_difference_inlaOrig=list()
 sq_difference_inlaOrig=(mean_pred-myData[["pred"]][["u"]])^2
@@ -540,7 +539,6 @@ rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanOldOrig=list()
 DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
 
 sq_difference_stanOldOrig=list()
 sq_difference_stanOldOrig=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -556,7 +554,7 @@ abline(h=mean(unlist(DS_stanOldOrig)), col ="red")   #its own mean
 abline(h=mean(unlist(DS_inlaOrig)), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_original, rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
-save(DS_inlaOrigAVG, DS_stanOldOrigAvg, DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginal.RData")
+save(DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginal.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
 rm(list = ls())
@@ -603,8 +601,6 @@ rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanNewOrig=list()
 DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-DS_stanNewOrigAvg=mean(unlist(DS_stanNewOrig))
-
 
 
 sq_difference_stanNewOrig=list()
@@ -621,7 +617,7 @@ abline(h=mean(DS_stanNewOrig), col ="red")   #its own mean
 abline(h=mean(DS_inlaOrig), col ="blue") #mean crps obtained from INLA
   
 save(rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
-save(DS_stanNewOrig, DS_stanNewOrigAvg, file = "DSnewOriginal.RData")
+save(DS_stanNewOrig, file = "DSnewOriginal.RData")
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Jittered Coordinates
 rm(list = ls())
@@ -657,7 +653,6 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from original coordinates
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
-DS_inlaJittAvg=mean(unlist(DS_inlaJitt))
 
 sq_difference_inlaJitt=list()
 sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
@@ -666,7 +661,6 @@ rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanOldJitt=list()
 DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
 
 sq_difference_stanOldJitt=list()
 sq_difference_stanOldJitt=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -682,7 +676,7 @@ abline(h=mean(DS_stanOldJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_jittered, rmse_stanold_jittered, distClass_oldJittered, file="resultsOldJittered.RData")
-save(DS_inlaJittAvg, DS_stanOldJittAvg, DS_inlaJitt, DS_stanOldJitt, file = "DSoldJittered.RData")
+save(DS_inlaJitt, DS_stanOldJitt, file = "DSoldJittered.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Jittered Coordinates
 rm(list = ls())
@@ -718,7 +712,6 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from jittered coordinates
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
-DS_inlaJittAvg=mean(unlist(DS_inlaJitt))
 
 sq_difference_inlaJitt=list()
 sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
@@ -727,7 +720,6 @@ rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanNewJitt=list()
 DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
 
 
 sq_difference_stanNewJittered=list()
@@ -744,15 +736,15 @@ abline(h=mean(DS_stanNewJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_stannew_jittered, distClass_newJittered, file="resultsNewJittered.RData")
-save(DS_stanNewJitt, DS_stanNewJittAvg, file = "DSnewJittered.RData")
+save(DS_stanNewJitt, file = "DSnewJittered.RData")
 
 #Tabulation of RMSE values without separation by distances
 rm(list = ls())
 
 #Set the working directory
-directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/UNIFORM"
 #directory="~/Desktop/STAN sampling/GRID"
-#directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -764,6 +756,36 @@ load("resultsNewJittered.RData")
 library(xtable)
 rmse=data.frame(Type=c("Original", "Jittered"), INLA=c(rmse_inla_original, rmse_inla_jittered), STAN1=c(rmse_stanold_original, rmse_stanold_jittered), STAN2=c(rmse_stannew_original, rmse_stannew_jittered))
 xtable(rmse)
+
+#Tabulation of Dawid Sebastiani scores without separation by distances
+rm(list = ls())
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
+
+load("DSnewJittered.RData")
+load("DSoldJittered.RData")
+load("DSoldOriginal.RData")
+load("DSnewOriginal.RData")
+
+
+DS_inlaOrigAvg=mean(unlist(DS_inlaOrig))
+DS_inlaJittAvg=mean(unlist(DS_inlaJitt))
+DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
+DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
+DS_stanNewOrigAvg=mean(unlist(DS_stanNewOrig))
+DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
+
+
+library(xtable)
+rmse=data.frame(Type=c("Original", "Jittered"), INLA=c(DS_inlaOrigAvg, DS_inlaJittAvg), STAN1=c(DS_stanOldOrigAvg, DS_stanOldJittAvg), STAN2=c(DS_stanNewOrigAvg, DS_stanNewJittAvg))
+xtable(rmse)
+
+
 
 #Splitting the data into 10 classes with respect to the distances and calculating average DS scores and RMSE for each class
 
