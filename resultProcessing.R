@@ -1060,9 +1060,9 @@ xtable(Time)
 rm(list = ls())
 
 #Set the working directory
-#directory="~/Desktop/STAN sampling/UNIFORM"
+directory="~/Desktop/STAN sampling/UNIFORM"
 #directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
