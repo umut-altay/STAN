@@ -13,9 +13,9 @@ inla.setOption(pardiso.license = "simulation/pardiso.lic")
 #POSTERIOR DISTRIBUTION GRAPHS WITH THE NEW STAN BASED ON THE ORIGINAL COORDINATES
 
 #Set the working directory
-directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/UNIFORM"
 #directory="~/Desktop/STAN sampling/GRID"
-#directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -499,8 +499,13 @@ ggplot(plot_data, aes(X, Y, group = Label)) +
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Original Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("INLA_original.RData")
 load("STAN_old_original.RData")
@@ -525,6 +530,7 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from original coordinates
 DS_inlaOrig=list()
 DS_inlaOrig=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
+DS_inlaOrigAVG=mean(unlist(DS_inlaOrig))
 
 sq_difference_inlaOrig=list()
 sq_difference_inlaOrig=(mean_pred-myData[["pred"]][["u"]])^2
@@ -534,14 +540,11 @@ rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanOldOrig=list()
 DS_stanOldOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
+DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
 
 sq_difference_stanOldOrig=list()
 sq_difference_stanOldOrig=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
 rmse_stanold_original=(sum(unlist(sq_difference_stanOldOrig))/1433)^0.5
-
-#DS without separation with respect to neighbourhood distances
-DS_inlaOrigAVG=mean(unlist(DS_inlaOrig))
-DS_stanOldOrigAvg=mean(unlist(DS_stanOldOrig))
 
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
@@ -553,12 +556,17 @@ abline(h=mean(unlist(DS_stanOldOrig)), col ="red")   #its own mean
 abline(h=mean(unlist(DS_inlaOrig)), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_original, rmse_stanold_original, distClass_oldOriginal, file="resultsOldOriginal.RData")
-save(DS_inlaOrigAVG, DS_stanOldOrigAvg, DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginalUniform.RData")
+save(DS_inlaOrigAVG, DS_stanOldOrigAvg, DS_inlaOrig, DS_stanOldOrig, file = "DSoldOriginal.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Original Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("INLA_original.RData")
 load("STAN_new_original.RData")
@@ -595,10 +603,9 @@ rmse_inla_original=(sum(unlist(sq_difference_inlaOrig))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanNewOrig=list()
 DS_stanNewOrig=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-
-
-#DS without separation with respect to neighbourhood distances
 DS_stanNewOrigAvg=mean(unlist(DS_stanNewOrig))
+
+
 
 sq_difference_stanNewOrig=list()
 sq_difference_stanNewOrig=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -606,20 +613,25 @@ rmse_stannew_original=(sum(unlist(sq_difference_stanNewOrig))/1433)^0.5
   
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_newOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanNewOrig, sqrDiff_inla = sq_difference_inlaOrig, sqrDiff_stan = sq_difference_stanOldOrig)
+distClass_newOriginal=data.frame(pred.point = predPoint.index, nnDistance = nearestOriginal[,2], DS_inla = DS_inlaOrig, DS_stan = DS_stanNewOrig, sqrDiff_inla = sq_difference_inlaOrig, sqrDiff_stan = sq_difference_stanNewOrig)
 
 boxplot(unlist(DS_stanNewOrig),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanNewOrig), DS_inlaOrig))-0.000000002), (max(c(unlist(DS_stanNewOrig), DS_inlaOrig))+0.000000002)))
 title(sub ="DS Scores STAN new-original", line = 0)
 abline(h=mean(DS_stanNewOrig), col ="red")   #its own mean      
 abline(h=mean(DS_inlaOrig), col ="blue") #mean crps obtained from INLA
   
-save(DS_stanNewOrigAvg, rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
-save(DS_stanNewOrig, file = "DSnewOriginalUniform.RData")
+save(rmse_inla_original, rmse_stannew_original, distClass_newOriginal, file="resultsNewOriginal.RData")
+save(DS_stanNewOrig, DS_stanNewOrigAvg, file = "DSnewOriginal.RData")
 
 #Dawid Sebastiani Scores and RMSE for Old STAN Script based on Jittered Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_old_jittered.RData")
@@ -645,6 +657,7 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from original coordinates
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
+DS_inlaJittAvg=mean(unlist(DS_inlaJitt))
 
 sq_difference_inlaJitt=list()
 sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
@@ -653,13 +666,7 @@ rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanOldJitt=list()
 DS_stanOldJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-
-
-#DS without separation with respect to neighbourhood distances
-DS_inlaJittAVG=mean(unlist(DS_inlaJitt))
 DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
-
-
 
 sq_difference_stanOldJitt=list()
 sq_difference_stanOldJitt=(colMeans(uSample)-myData[["pred"]][["u"]])^2 
@@ -667,7 +674,7 @@ rmse_stanold_jittered=(sum(unlist(sq_difference_stanOldJitt))/1433)^0.5
 
 #Nearest neighbour results and DS scores becomes a single data frame
 predPoint.index=c(1:length(loc.pred[,1]))
-distClass_oldJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanOldJitt, sqrDiff_inla = sq_difference_inlaJitt, sqrDiff_stan = sq_difference_stanOldOrig)
+distClass_oldJittered=data.frame(pred.point = predPoint.index, nnDistance = nearestJittered[,2], DS_inla = DS_inlaJitt, DS_stan = DS_stanOldJitt, sqrDiff_inla = sq_difference_inlaJitt, sqrDiff_stan = sq_difference_stanOldJitt)
 
 boxplot(unlist(DS_stanOldJitt),horizontal=FALSE, ylim = c((min(c(unlist(DS_stanOldJitt), DS_inlaJitt))-0.000000002), (max(c(unlist(DS_stanOldJitt), DS_inlaJitt))+0.000000002)))
 title(sub ="DS Scores STAN old-jittered", line = 0)
@@ -675,12 +682,17 @@ abline(h=mean(DS_stanOldJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_inla_jittered, rmse_stanold_jittered, distClass_oldJittered, file="resultsOldJittered.RData")
-save(DS_inlaJittAVG, DS_stanOldJittAvg, DS_inlaJitt, DS_stanOldJitt, file = "DSoldJitteredUniform.RData")
+save(DS_inlaJittAvg, DS_stanOldJittAvg, DS_inlaJitt, DS_stanOldJitt, file = "DSoldJittered.RData")
 
 #Dawid Sebastiani Scores and RMSE for New STAN Script based on Jittered Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("INLA_jittered.RData")
 load("STAN_new_jittered.RData")
@@ -706,6 +718,7 @@ sd_pred = res.inla.hyper$summary.linear.predictor[index, "sd"]
 #DS scores and RMSE from jittered coordinates
 DS_inlaJitt=list()
 DS_inlaJitt=((myData[["pred"]][["u"]]-mean_pred)/sd_pred)^2+log(sd_pred^2)
+DS_inlaJittAvg=mean(unlist(DS_inlaJitt))
 
 sq_difference_inlaJitt=list()
 sq_difference_inlaJitt=(mean_pred-myData[["pred"]][["u"]])^2
@@ -714,9 +727,6 @@ rmse_inla_jittered=(sum(unlist(sq_difference_inlaJitt))/1433)^0.5
 sDev=apply(uSample, 2, sd)
 DS_stanNewJitt=list()
 DS_stanNewJitt=((myData[["pred"]][["u"]]-colMeans(uSample))/sDev)^2+log(sDev^2)
-
-
-#DS without separation with respect to neighbourhood distances
 DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
 
 
@@ -734,12 +744,17 @@ abline(h=mean(DS_stanNewJitt), col ="red")   #its own mean
 abline(h=mean(DS_inlaJitt), col ="blue") #mean crps obtained from INLA
 
 save(rmse_stannew_jittered, distClass_newJittered, file="resultsNewJittered.RData")
-save(DS_stanNewJitt, file = "DSnewJitteredUniform.RData")
+save(DS_stanNewJitt, DS_stanNewJittAvg, file = "DSnewJittered.RData")
 
-#Tabulation of RMSE values
+#Tabulation of RMSE values without separation by distances
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -750,13 +765,17 @@ library(xtable)
 rmse=data.frame(Type=c("Original", "Jittered"), INLA=c(rmse_inla_original, rmse_inla_jittered), STAN1=c(rmse_stanold_original, rmse_stanold_jittered), STAN2=c(rmse_stannew_original, rmse_stannew_jittered))
 xtable(rmse)
 
-
-#Splitting the data into 10 classes with respect to the distances and calculating average DS scores for each class
+#Splitting the data into 10 classes with respect to the distances and calculating average DS scores and RMSE for each class
 
 #For New STAN and Original Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -777,6 +796,16 @@ l=c(1:10) # labels should be 1 less than the breaks
 nnd=distClass_newOriginal$nnDistance
 cls=cut(nnd, breaks = b, labels = l)
 distClass_newOriginal$cls=cls
+
+#rmse separated
+fun_rmse=function(x){
+  sqrt(mean(x))
+}
+rmse_separated=aggregate(distClass_newOriginal[, 5:6], list(distClass_newOriginal$cls), fun_rmse)
+rmse_separated=data.frame(rmse_separated,Lower = km[1:10], Upper = km[2:11])
+library(xtable)
+xtable(rmse_separated)
+
 avrScores_newOriginal=aggregate(distClass_newOriginal[, 3:4], list(distClass_newOriginal$cls), mean)
 avrScores_newOriginal=data.frame(avrScores_newOriginal,Lower = km[1:10], Upper = km[2:11])
 library(xtable)
@@ -785,8 +814,13 @@ xtable(avrScores_newOriginal)
 
 #For Old STAN and Original Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -807,6 +841,18 @@ l=c(1:10) # labels should be 1 less than the breaks
 nnd=distClass_oldOriginal$nnDistance
 cls=cut(nnd, breaks = b, labels = l)
 distClass_oldOriginal$cls=cls
+
+
+#rmse separated
+fun_rmse=function(x){
+  sqrt(mean(x))
+}
+rmse_separated=aggregate(distClass_oldOriginal[, 5:6], list(distClass_oldOriginal$cls), fun_rmse)
+rmse_separated=data.frame(rmse_separated,Lower = km[1:10], Upper = km[2:11])
+library(xtable)
+xtable(rmse_separated)
+
+
 avrScores_oldOriginal=aggregate(distClass_oldOriginal[, 3:4], list(distClass_oldOriginal$cls), mean)
 avrScores_oldOriginal=data.frame(avrScores_oldOriginal,Lower = km[1:10], Upper = km[2:11])
 
@@ -816,8 +862,13 @@ xtable(avrScores_oldOriginal)
 
 #For New STAN and Jittered Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -838,6 +889,17 @@ l=c(1:10) # labels should be 1 less than the breaks
 nnd=distClass_newJittered$nnDistance
 cls=cut(nnd, breaks = b, labels = l)
 distClass_newJittered$cls=cls
+
+#rmse separated
+fun_rmse=function(x){
+  sqrt(mean(x))
+}
+rmse_separated=aggregate(distClass_newJittered[, 5:6], list(distClass_newJittered$cls), fun_rmse)
+rmse_separated=data.frame(rmse_separated,Lower = km[1:10], Upper = km[2:11])
+library(xtable)
+xtable(rmse_separated)
+
+
 avrScores_newJittered=aggregate(distClass_newJittered[, 3:4], list(distClass_newJittered$cls), mean)
 avrScores_newJittered=data.frame(avrScores_newJittered,Lower = km[1:10], Upper = km[2:11])
 
@@ -847,8 +909,13 @@ xtable(avrScores_newJittered)
 
 #For Old STAN and Jittered Coordinates
 rm(list = ls())
-# directory="~/Desktop/STAN sampling"
-# setwd(directory)
+
+#Set the working directory
+directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
+
+setwd(directory)
 
 load("resultsOldOriginal.RData")
 load("resultsNewOriginal.RData")
@@ -869,6 +936,16 @@ l=c(1:10) # labels should be 1 less than the breaks
 nnd=distClass_oldJittered$nnDistance
 cls=cut(nnd, breaks = b, labels = l)
 distClass_oldJittered$cls=cls
+
+#rmse separated
+fun_rmse=function(x){
+  sqrt(mean(x))
+}
+rmse_separated=aggregate(distClass_oldJittered[, 5:6], list(distClass_oldJittered$cls), fun_rmse)
+rmse_separated=data.frame(rmse_separated,Lower = km[1:10], Upper = km[2:11])
+library(xtable)
+xtable(rmse_separated)
+
 avrScores_oldJittered=aggregate(distClass_oldJittered[, 3:4], list(distClass_oldJittered$cls), mean)
 avrScores_oldJittered=data.frame(avrScores_oldJittered,Lower = km[1:10], Upper = km[2:11])
 
@@ -877,9 +954,122 @@ xtable(avrScores_oldJittered)
 
 
 
-#Plotting Original and Jittered DS Scores Against Each Other
+#TIME measurements
+rm(list = ls())
 
+directory="~/Desktop/STAN sampling"
+setwd(directory)
+
+Title=data.frame("INLA", "Sampling STAN1", "Total STAN1", "Sampling STAN2", "Total STAN2")
+
+load("~/Desktop/STAN sampling/time_initialOriginal.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Initial_Original=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Initial_Original=data.frame(Script="Initial Original", Initial_Original)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+load("~/Desktop/STAN sampling/time_initialJittered.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Initial_Jittered=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Initial_Jittered=data.frame(Script="Initial Jittered", Initial_Jittered)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+load("~/Desktop/STAN sampling/time_GridOriginal.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Grid_Original=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Grid_Original=data.frame(Script="Grid Original", Grid_Original)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+load("~/Desktop/STAN sampling/time_GridJittered.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Grid_Jittered=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Grid_Jittered=data.frame(Script="Grid Jittered", Grid_Jittered)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+
+
+load("~/Desktop/STAN sampling/time_UniformOriginal.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Uniform_Original=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Uniform_Original=data.frame(Script="Uniform Original", Uniform_Original)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+
+load("~/Desktop/STAN sampling/time_UniformJittered.RData")
+Total=end_all-start_all
+Total_INLA=end_INLA-start_INLA
+Sampling_STAN1=end_sampOldSTAN-start_sampOldSTAN
+Total_STAN1=end_oldSTAN-start_oldSTAN
+Sampling_STAN2=end_sampNewSTAN-start_sampNewSTAN
+Total_STAN2=end_newSTAN-start_newSTAN
+Uniform_Jittered=data.frame(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+Uniform_Jittered=data.frame(Script="Uniform Jittered", Uniform_Jittered)
+rm(Total, Total_INLA, Sampling_STAN1, Total_STAN1, Sampling_STAN2, Total_STAN2)
+
+Time=rbind(Initial_Original, Initial_Jittered, Grid_Original, Grid_Jittered, Uniform_Original, Uniform_Jittered)
+
+
+library(xtable)
+xtable(Time)
+
+#Plotting Original and Jittered DS Scores Against Each Other and Tabulation of non-separated DS scores
+rm(list = ls())
+
+
+#For non separated DS
+rm(list = ls())
+
+#Set the working directory
+#directory="~/Desktop/STAN sampling/UNIFORM"
+#directory="~/Desktop/STAN sampling/GRID"
+directory="~/Desktop/STAN sampling"
+
+setwd(directory)
+
+load("DSnewJittered.RData")
+load("DSoldJittered.RData")
+load("DSnewOriginal.RData")
+load("DSnewOriginal.RData")
+
+
+
+
+
+load("resultsOldOriginal.RData")
+load("resultsNewOriginal.RData")
+load("resultsOldJittered.RData")
+load("resultsNewJittered.RData")
+
+
+#For Plotting
 #Initial
+rm(list = ls())
+
 directory="~/Desktop/STAN sampling"
 setwd(directory)
 
@@ -887,6 +1077,17 @@ load("DSnewJittered.RData")
 load("DSoldJittered.RData")
 load("DSnewOriginal.RData")
 load("DSnewOriginal.RData")
+
+DS_inlaAVG=mean(unlist(DS_inlaJitt))
+DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
+DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
+
+DS_inlaJittAVG=mean(unlist(DS_inlaJitt))
+DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
+DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
+
+
+
 
 #Uniform
 directory="~/Desktop/STAN sampling/UNIFORM"
