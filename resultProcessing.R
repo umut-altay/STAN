@@ -367,10 +367,6 @@ observed8=data.frame(Longitude = myData[["obs"]][["xCor"]][8], Latitude = myData
 observed9=data.frame(Longitude = myData[["obs"]][["xCor"]][9], Latitude = myData[["obs"]][["yCor"]][9])
 observed10=data.frame(Longitude = myData[["obs"]][["xCor"]][10], Latitude = myData[["obs"]][["yCor"]][10])
 
-#GGplot Figures
-#NOTE: the longitude and latitude values in the geom_point(aes()) part at the end
-#are directly taken from observed1, 2, 3,... data frame and copy pasted there.
-#Because the ggplot code didn't recognize them when observed1[1,1] and observed1[1,2] is used instead
 
 #Location1
 X=c(sampledLoc_original1[,1], sampledLoc_jittered1[,1])
@@ -502,8 +498,8 @@ rm(list = ls())
 
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
-#directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -561,8 +557,8 @@ rm(list = ls())
 
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
-#directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -624,8 +620,8 @@ rm(list = ls())
 
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
-#directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -683,8 +679,8 @@ rm(list = ls())
 
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
-#directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -762,8 +758,8 @@ rm(list = ls())
 
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
-#directory="~/Desktop/STAN sampling/GRID"
-directory="~/Desktop/STAN sampling"
+directory="~/Desktop/STAN sampling/GRID"
+#directory="~/Desktop/STAN sampling"
 
 setwd(directory)
 
@@ -1059,7 +1055,8 @@ Time=rbind(Initial_Original, Initial_Jittered, Grid_Original, Grid_Jittered, Uni
 library(xtable)
 xtable(Time)
 
-#Plotting Original and Jittered DS Scores Against Each Other and Tabulation of non-separated DS scores
+
+#Plotting Original and Jittered DS Scores Against Each Other
 rm(list = ls())
 
 
