@@ -1059,10 +1059,6 @@ xtable(Time)
 #Plotting Original and Jittered DS Scores Against Each Other
 rm(list = ls())
 
-
-#For non separated DS
-rm(list = ls())
-
 #Set the working directory
 #directory="~/Desktop/STAN sampling/UNIFORM"
 #directory="~/Desktop/STAN sampling/GRID"
@@ -1072,69 +1068,34 @@ setwd(directory)
 
 load("DSnewJittered.RData")
 load("DSoldJittered.RData")
-load("DSnewOriginal.RData")
-load("DSnewOriginal.RData")
-
-
-
-
-
-load("resultsOldOriginal.RData")
-load("resultsNewOriginal.RData")
-load("resultsOldJittered.RData")
-load("resultsNewJittered.RData")
-
-
-#For Plotting
-#Initial
-rm(list = ls())
-
-directory="~/Desktop/STAN sampling"
-setwd(directory)
-
-load("DSnewJittered.RData")
-load("DSoldJittered.RData")
-load("DSnewOriginal.RData")
+load("DSoldOriginal.RData")
 load("DSnewOriginal.RData")
 
-DS_inlaAVG=mean(unlist(DS_inlaJitt))
-DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
-DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
-
-DS_inlaJittAVG=mean(unlist(DS_inlaJitt))
-DS_stanOldJittAvg=mean(unlist(DS_stanOldJitt))
-DS_stanNewJittAvg=mean(unlist(DS_stanNewJitt))
-
-
-
-
-#Uniform
-directory="~/Desktop/STAN sampling/UNIFORM"
-setwd(directory)
-
-load("DSnewJitteredUniform.RData")
-load("DSoldJitteredUniform.RData")
-load("DSnewOriginalUniform.RData")
-load("DSnewOriginalUniform.RData")
-
-#Grid
-directory="~/Desktop/STAN sampling/GRID"
-setwd(directory)
-
-load("DSnewJitteredGrid.RData")
-load("DSoldJitteredGrid.RData")
-load("DSnewOriginalGrid.RData")
-load("DSnewOriginalGrid.RData")
-
-plot(DS_stanOldOrig, DS_stanOldJitt)
+#INLA
+Jittered=c(unlist(DS_inlaJitt))
+Original=c(unlist(DS_inlaOrig))
+plot_data <-data.frame(Jittered, Original)
+ggplot(plot_data, aes(Jittered, Original)) +
+  geom_point() +
+  coord_fixed(ratio = 1) + theme(axis.text.y = element_text(angle = 90, hjust = 1))
 
 
 
+#STAN1
+Jittered=c(unlist(DS_stanOldJitt))
+Original=c(unlist(DS_stanOldOrig))
+plot_data <-data.frame(Jittered, Original)
+ggplot(plot_data, aes(Jittered, Original)) +
+  geom_point() +
+  coord_fixed(ratio = 1) + theme(axis.text.y = element_text(angle = 90, hjust = 1))
 
-
-
-
-
+#STAN2
+Jittered=c(unlist(DS_stanNewJitt))
+Original=c(unlist(DS_stanNewOrig))
+plot_data <-data.frame(Jittered, Original)
+ggplot(plot_data, aes(Jittered, Original)) +
+  geom_point() +
+  coord_fixed(ratio = 1) + theme(axis.text.y = element_text(angle = 90, hjust = 1))   
 
 
 
