@@ -6,14 +6,14 @@ library(SUMMER)
 library(fields)
 library(INLA)
 library(viridisLite)
-
-
+library(rgdal)
+library(spatialEco)
 library(plotrix)
 library(fields)
 library(latex2exp)
 
 # source('~/git/continuousNugget/code/plotGenerator.R')
-source('jitterinplotGenerator.R')
+source('plotGenerator.R')
 source('makeIntegrationPoints.R')
 source('modSPDEJitter.R')
 
@@ -54,15 +54,14 @@ dat = mort[inds,]
 coords = cbind(dat$east, dat$north) # projected easting/northing in km
 
 urbanVals = dat$urban # TRUE/FALSE if urban/rural
-ys = dat$y # population numerator
-ns = dat$n # population denominator
+
 
 # Section 2: Fitting and prediction with TMB ----
 # * Compile TMB function and load it in ----
-if(FALSE) {
-  compile("modSPDEJitter.cpp")
-}
-dyn.load( dynlib("modSPDEJitter"))
+#if(FALSE) {
+  compile("mySPDE.cpp")
+#}
+dyn.load( dynlib("mySPDE"))
 
 
 # * Prep inputs to TMB ----
@@ -86,52 +85,140 @@ n_integrationPointsRural = ncol(wRural)
 # prior for spatial standard deviation is set so P(sigma > 1) = 0.05
 
 
-# #create jittered coordinates
-# loc.obs = cbind(myData[["obs"]][["xCor"]], myData[["obs"]][["yCor"]])
-# 
-# #locations obtained by randomly jittering the observation locations (0-6 and 0-15 km jittereing for urban and rural observation locations)
-# u_r=kenya.geo@data[["URBAN_RURA"]]
-# source("simulation/functions3.R")
-# #Random Distances
-# distance3 = list()
-# distance3=random.distance(u_r)
-# #Random Angles
-# angle3 = list()
-# angle3=random.angle(nLoc)  
-# 
-# #Random Displacements
-# jittered3=list()
-# jittered3=displace(lat=loc.obs[,2],long=loc.obs[,1],angle=angle3,distance=distance3)
-# loc.jit=data.frame(V1=jittered3[["locx"]], V2=jittered3[["locy"]])
-# loc.jit=as.matrix(loc.jit)
+#SIMULATE OBSERVATIONS  (to replace "ys" with simulated observations)
+
+#observation locations
+loc.obs = cbind(dat$lon, dat$lat)
+#prediction locations (grid)
+
+## Extract spatial design based on Kenya dataset
+# Read Kenya geography
+kenya.geo <-readOGR('geodata/KEGE71FL.shp')
+
+# Remove clusters with missing locations
+kenya.geo = subset(kenya.geo, kenya.geo$LONGNUM != 0)
+
+# Prediction grid
+xx = seq(min(kenya.geo$LONGNUM), max(kenya.geo$LONGNUM), length.out = 50)
+yy = seq(min(kenya.geo$LATNUM), 5.5, length.out = 50) #reason for 5.5 : max(kenya.geo$LATNUM) can't capture part of the North-West upper tip of the Kenya map
+loc.pred = cbind(rep(xx, each = length(yy)), rep(yy, length(xx)))
+
+#Removing the points (that are outside the Kenya) from the grid
+#Import Kenya shape file
+kenya_shape=readOGR('kenya_administrative1/ken_admbnda_adm1_iebc_20191031.shp')
+
+#Convert prediction grid into a SpatialPointsDataFrame object 
+grid=data.frame(xCoor = loc.pred[,1], yCoor = loc.pred[, 2])
+grid <- SpatialPointsDataFrame(grid, data.frame(id=1:2500)) #we have 2500 points in the initial grid
+
+#Remove the locations that are out of Kenya
+grid=erase.point(grid, kenya_shape, inside = FALSE)
+
+#Make a new loc.pred matrix from the remaining points
+loc.pred = cbind(grid@coords[ ,1], grid@coords[ ,2])
+
+## Simulate spatial effect
+# Desired parameters
+range.sim = 1.5 #degrees
+sigma.sim = 1
+
+# covariance function
+covFun = function(dMat, range, stdDev){
+  Sig = inla.matern.cov(nu = 1,
+                        kappa = sqrt(8*1)/range,
+                        x = dMat,
+                        corr = TRUE)
+  Sig = stdDev^2*Sig
+}
+
+# Covariance matrix
+covMat = covFun(dMat = as.matrix(dist(rbind(loc.obs, loc.pred))),
+                range = range.sim,
+                stdDev = sigma.sim)
+
+# Simulate spatial effect
+L = t(chol(covMat))
+u.sim = L%*%rnorm(dim(L)[1])
+
+nLoc = 100
+df = data.frame(xCor = loc.pred[,1], yCor = loc.pred[, 2], u = u.sim[-(1:nLoc)])
+df2 = data.frame(xCor = loc.obs[,1], yCor = loc.obs[, 2], u = u.sim[1:nLoc])
+
+# Save truth
+myData = list(obs = df2,
+              pred = df,
+              truePar = list(range = range.sim,
+                             spSD  = sigma.sim))
+
+# Simulate observation model
+# Desired parameters
+sigma.nugget = sqrt(0.1)
+
+# Data size
+N = length(myData$obs$xCor)
+
+# Covariate values
+x = runif(N,-2,2)
+
+# Coefficients of the fixed effects (intercept and slope)
+alpha0 = 1
+beta0 = 1
+
+# Model Components
+alpha   = rep(alpha0, N)
+beta    = rep(beta0, N)
+u       = myData$obs$u
+epsilon = rnorm(N, 0, sigma.nugget)
+
+# Assemble
+lin.pred <- alpha + beta*x + u
+y = lin.pred + epsilon
+
+ys = y # population numerator
+ones=rep(1, length(dat$y))
+ns = ones # population denominator
+
+#jitter observation locations randomly (0-6 and 0-15 km jittering for urban and rural observation locations)
+u_r=kenya.geo@data[["URBAN_RURA"]]
+source("functions3.R")
+#Random Distances
+distance3 = list()
+distance3=random.distance(u_r)
+#Random Angles
+angle3 = list()
+angle3=random.angle(nLoc)  
+
+#Random Displacements
+jittered3=list()
+jittered3=displace(lat=loc.obs[,2],long=loc.obs[,1],angle=angle3,distance=distance3)
+loc.jit=data.frame(V1=jittered3[["locx"]], V2=jittered3[["locy"]])
+loc.jit=as.matrix(loc.jit)
+
+#convert jittered coordinates to easting/northing
+#Setting existing coordinate as lat-long system
+loc.jit = SpatialPoints(cbind(loc.jit[,1], loc.jit[,2]), proj4string = CRS("+proj=longlat"))
+
+# Transforming jittered coordinates to UTM using EPSG=32748 for WGS=84, UTM Zone=37S,
+#PROJCRS for Kenya => WGS 84, UTM zone 37S, EPSG:32737(https://epsg.io/?q=Kenya%20kind%3APROJCRS)
+loc.jit <- spTransform(loc.jit, CRS("+init=epsg:32737"))
+loc.jit
+
+#visual check
+par(mfrow = c(1, 2))
+plot(loc.obs, axes = TRUE, main = "Lat-Long Coordinates", cex.axis = 0.95)
+plot(loc.jit, axes = TRUE, main = "UTM Coordinates", col = "red", cex.axis = 0.95)
+
+library(maps)
+map("world", fill=TRUE, col="white", bg="lightblue", ylim=c(-60, 90), mar=c(0,0,0,0))
+points(loc.obs@coords[,1],loc.obs@coords[,2], col="red", pch=16)
+
+jitteredCoords=locs=cbind(loc.jit@coords[,1],loc.jit@coords[,2])
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-jitterAmount = 7 / 4
-jitteredCoords = locs=cbind(jitter(dat$east, amount=jitterAmount), jitter(dat$north, amount=jitterAmount))
+#jitterAmount = 7 / 4 #km
+#jitteredCoords = locs=cbind(jitter(dat$east, amount=jitterAmount), jitter(dat$north, amount=jitterAmount))
 mesh.s = getSPDEMeshKenya(jitteredCoords)
-USpatial = 1
+USpatial = 1 #(same with sigma.sim=1)
 alphaSpatial = 0.05
 
 prior.range = c(1, 0.5)
@@ -140,11 +227,12 @@ spde = inla.spde2.pcmatern(mesh = mesh.s,
                                 prior.range = prior.range,
                                 prior.sigma = prior.sigma)
 
-
 #spde = getSPDEPrior(mesh.s, U=USpatial, alpha=alphaSpatial)
 #range0 = min(c(diff(range(mesh.s$loc[, 1])), diff(range(mesh.s$loc[, 2])))) # 1444.772
 #range0 = range0 / 5
-range0=1.5*111
+
+range0=1.5*111 #km
+
 # construct projection matrices, and get other relevant info for TMB
 out = makeJitterDataForTMB(intPointInfo, ys, urbanVals, ns, spdeMesh=mesh.s)
 ysUrban = out$ysUrban
@@ -164,13 +252,14 @@ alpha.pri = c(1, 100)
 # field sd limit: sigma0
 # field sd prob:  alpha_sigma
 
-USpatial=1
-alphaSpatial=0.05
-
 matern.pri = c(range0, 0.5, USpatial, alphaSpatial)
 
+
+covMat=covMat+diag(length(covMat[,1]))*(sigma.nugget^2)
+
 # compile inputs for TMB
-data_full <- list(num_iUrban = length(ysUrban),  # Total number of urban observations
+data_full <- list(covMat = covMat, #covariance matrix of observations
+                  num_iUrban = length(ysUrban),  # Total number of urban observations
                   num_iRural = length(ysRural),  # Total number of rural observations
                   num_s = mesh.s[['n']], # num. of vertices in SPDE mesh
                   y_iUrban   = ysUrban, # num. of pos. urban obs in the cluster
@@ -256,52 +345,7 @@ alpha_tmb_draws    <- matrix(t.draws[parnames == 'alpha',], nrow = 1)
 
 
 
-#Make prediction grid
-## Extract spatial design based on Kenya dataset
-# Read Kenya geography
-kenya.geo <-readOGR('geodata/KEGE71FL.shp')
-
-# Remove clusters with missing locations
-kenya.geo = subset(kenya.geo, kenya.geo$LONGNUM != 0)
-
-# Prediction grid
-xx = seq(min(kenya.geo$LONGNUM), max(kenya.geo$LONGNUM), length.out = 50)
-yy = seq(min(kenya.geo$LATNUM), 5.5, length.out = 50) #reason for 5.5 : max(kenya.geo$LATNUM) can't capture part of the North-West upper tip of the Kenya map
-loc.pred = cbind(rep(xx, each = length(yy)), rep(yy, length(xx)))
-
-
-#Removing the points (that are outside the Kenya) from the grid
-#Import Kenya shape file
-kenya_shape=readOGR('kenya_administrative1/ken_admbnda_adm1_iebc_20191031.shp')
-
-#Convert prediction grid into a SpatialPointsDataFrame object 
-grid=data.frame(xCoor = loc.pred[,1], yCoor = loc.pred[, 2])
-grid <- SpatialPointsDataFrame(grid, data.frame(id=1:2500)) #we have 2500 points in the initial grid
-
-#Remove the locations that are out of Kenya
-grid=erase.point(grid, kenya_shape, inside = FALSE)
-
-#Make a new loc.pred matrix from the remaining points
-loc.pred = cbind(grid@coords[ ,1], grid@coords[ ,2])
-nPred = dim(loc.pred)[1]
-
-#convert prediction grid coordinates in to easting/northing
-library(rgdal)
-# Setting existing coordinate as lat-long system
-loc.predd = SpatialPoints(cbind(loc.pred[,1], loc.pred[,2]), proj4string = CRS("+proj=longlat"))
-
-
-# Transforming coordinate to UTM using EPSG=32748 for WGS=84, UTM Zone=48M,
-# Southern Hemisphere)
-cordPred.UTM <- spTransform(loc.predd, CRS("+init=epsg:32748"))
-cordPred.UTM
-
-#visual check
-par(mfrow = c(1, 2))
-plot(loc.pred, axes = TRUE, main = "Lat-Long Coordinates", cex.axis = 0.95)
-plot(cordPred.UTM, axes = TRUE, main = "UTM Coordinates", col = "red", cex.axis = 0.95)
-
-predCoords=cordPred.UTM
+predCoords=loc.pred
 
 # project from mesh to raster, add intercept
 #data(kenyaPopulationData)
