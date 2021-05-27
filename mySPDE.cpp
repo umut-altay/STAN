@@ -87,7 +87,7 @@ Type objective_function<Type>::operator() ()
   DATA_VECTOR( y_iRural );
   DATA_VECTOR( n_iUrban );   // Trials per cluster
   DATA_VECTOR( n_iRural );
-  DATA_MATRIX( covMat ); // Covariance matrix of observations
+  //DATA_MATRIX( covMat ); // Covariance matrix of observations
   DATA_MATRIX( X_alphaUrban );  // 'design matrix' for just int
   DATA_MATRIX( X_alphaRural );
   DATA_MATRIX( wUrban ); // nObsUrban x nIntegrationPointsUrban weight matrix
@@ -118,8 +118,8 @@ Type objective_function<Type>::operator() ()
   // Log of INLA tau param (precision of space covariance matrix)
   PARAMETER( log_tau );
   // Log of INLA kappa (related to spatial correlation and range)
-  PARAMETER( stdNugget ); // nugget standard deviation
   PARAMETER( log_kappa );
+  
   // Random effects for each spatial mesh vertex
   PARAMETER_VECTOR( Epsilon_s );
   
@@ -132,11 +132,12 @@ Type objective_function<Type>::operator() ()
   
   // Make spatial precision matrix
   SparseMatrix<Type> Q_ss = spde_Q(log_kappa, log_tau, M0, M1, M2);
+  
   // Transform some of our parameters
   Type sp_range = sqrt(8.0) / exp(log_kappa);
   Type sp_sigma = 1.0 / sqrt(4.0 * 3.14159265359 *
     exp(2.0 * log_tau) * exp(2.0 * log_kappa));
-  //Type stdNugget = 1/sqrt(exp(log_tau)); // nugget standard deviation
+  Type stdNugget = 1/sqrt(exp(log_tau)); // nugget standard deviation
   
   // Define objects for derived values
   vector<Type> fe_iUrban(num_iUrban); // main effect: alpha
@@ -216,11 +217,13 @@ Type objective_function<Type>::operator() ()
       if(!isNA(y_iUrban(i))){
         // get integration weight
         thisWeight = wUrban(i,j);
+        
+        //MVNORM_t<Type> dmvnorm(covMat);
         // Uses the dbinom_robust function, which takes the logit probability
        //thislik += thisWeight*dbinom_robust( y_iUrban(i), n_iUrban(i), thisLatentField, false);
-        thislik += thisWeight*MVNORM(covMat)(y_iUrban(i));
+        //thislik += thisWeight*dmvnorm(y_iUrban(i), false);
         
-        
+        thislik += thisWeight*dnorm(Type(y_iUrban(i)-thisLatentField), Type(0), stdNugget, false); // N(mean, sd)
       } // !isNA
       
     } // for( j )
@@ -244,7 +247,8 @@ Type objective_function<Type>::operator() ()
         
         // Uses the dbinom_robust function, which takes the logit probability
         //thislik += thisWeight*dbinom_robust( y_iRural(i), n_iRural(i), thisLatentField, false);
-        thislik += thisWeight*MVNORM(covMat)(y_iRural(i));
+        //thislik += thisWeight*dmvnorm(y_iRural(i), false);
+        thislik += thisWeight*dnorm(Type(y_iRural(i)-thisLatentField), Type(0), stdNugget, false); // N(mean, sd)
       } // !isNA
       
     } // for( j )

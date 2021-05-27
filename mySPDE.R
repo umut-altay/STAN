@@ -12,6 +12,11 @@ library(plotrix)
 library(fields)
 library(latex2exp)
 
+library(devtools)
+install_github("richardli/SUMMER")
+library(SUMMER)
+data(kenyaPopulationData)
+
 # source('~/git/continuousNugget/code/plotGenerator.R')
 source('plotGenerator.R')
 source('makeIntegrationPoints.R')
@@ -51,7 +56,8 @@ set.seed(123)
 inds = sample(1:nrow(mort), N, replace=FALSE)
 dat = mort[inds,]
 
-coords = cbind(dat$east, dat$north) # projected easting/northing in km
+#coords = cbind(dat$east, dat$north) # projected easting/northing in km
+coords = cbind(dat$lon, dat$lat)
 
 urbanVals = dat$urban # TRUE/FALSE if urban/rural
 
@@ -200,7 +206,7 @@ loc.jit = SpatialPoints(cbind(loc.jit[,1], loc.jit[,2]), proj4string = CRS("+pro
 
 # Transforming jittered coordinates to UTM using EPSG=32748 for WGS=84, UTM Zone=37S,
 #PROJCRS for Kenya => WGS 84, UTM zone 37S, EPSG:32737(https://epsg.io/?q=Kenya%20kind%3APROJCRS)
-loc.jit <- spTransform(loc.jit, CRS("+init=epsg:32737"))
+#loc.jit <- spTransform(loc.jit, CRS("+init=epsg:32737"))
 loc.jit
 
 #visual check
@@ -217,7 +223,10 @@ jitteredCoords=locs=cbind(loc.jit@coords[,1],loc.jit@coords[,2])
 
 #jitterAmount = 7 / 4 #km
 #jitteredCoords = locs=cbind(jitter(dat$east, amount=jitterAmount), jitter(dat$north, amount=jitterAmount))
-mesh.s = getSPDEMeshKenya(jitteredCoords)
+mesh.s <- inla.mesh.2d(loc.domain = jitteredCoords,
+                          max.edge = 0.13,
+                          offset = -0.1)
+#mesh.s = getSPDEMeshKenya(jitteredCoords)
 USpatial = 1 #(same with sigma.sim=1)
 alphaSpatial = 0.05
 
@@ -255,11 +264,11 @@ alpha.pri = c(1, 100)
 matern.pri = c(range0, 0.5, USpatial, alphaSpatial)
 
 
-covMat=covMat+diag(length(covMat[,1]))*(sigma.nugget^2)
+#covMat=covMat+diag(length(covMat[,1]))*(sigma.nugget^2)
 
 # compile inputs for TMB
 data_full <- list(stdNugget = sqrt(0.1), #nugget standard deviation
-                  covMat = covMat, #covariance matrix of observations
+                  #covMat = covMat, #covariance matrix of observations
                   num_iUrban = length(ysUrban),  # Total number of urban observations
                   num_iRural = length(ysRural),  # Total number of rural observations
                   num_s = mesh.s[['n']], # num. of vertices in SPDE mesh
@@ -288,7 +297,8 @@ data_full <- list(stdNugget = sqrt(0.1), #nugget standard deviation
 
 ## Specify starting values for TMB params
 tmb_params <- list(alpha = 0.0, # intercept
-                   log_tau = 0, # Log tau (i.e. log spatial precision, Epsilon)
+                   log_tau = log(1/(1.5)), # Log tau (i.e. log spatial precision, Epsilon)
+                   #this makes line 140 in .cpp file: Type stdNugget = 1/sqrt(exp(log_tau))=sqrt(1.5)
                    log_kappa = 0, # SPDE parameter related to the range
                    Epsilon_s = rep(0, mesh.s[['n']]) # RE on mesh vertices
 )
@@ -301,7 +311,7 @@ obj <- MakeADFun(data=data_full,
                  parameters=tmb_params,
                  random=rand_effs,
                  hessian=TRUE,
-                 DLL='modSPDEJitter')
+                 DLL='mySPDE')
 
 ## we can normalize the GMRF outside of the nested optimization,
 ## avoiding unnecessary and expensive cholesky operations.
@@ -344,19 +354,23 @@ parnames <- c(names(SD0[['par.fixed']]), names(SD0[['par.random']]))
 epsilon_tmb_draws  <- t.draws[parnames == 'Epsilon_s',]
 alpha_tmb_draws    <- matrix(t.draws[parnames == 'alpha',], nrow = 1)
 
-
+which(A.pred!=0,arr.ind = T)
+which(AUrban!=0,arr.ind = T)
+which(ARural!=0,arr.ind = T)
 
 predCoords=loc.pred
 
 # project from mesh to raster, add intercept
 #data(kenyaPopulationData)
 #predCoords = cbind(popMatKenya$east, popMatKenya$north)
+popMatKenya = data.frame(predCoords[,1],predCoords[,2])
+colnames(popMatKenya) = c("east", "north")
 A.pred = inla.spde.make.A(mesh = mesh.s, loc = predCoords)
 pred_tmb <- as.matrix(A.pred %*% epsilon_tmb_draws)
 pred_tmb <- sweep(pred_tmb, 2, alpha_tmb_draws, '+')
-
+?sweep
 # convert to probability scale
-pred_tmb = expit(pred_tmb)
+#pred_tmb = expit(pred_tmb)
 
 ## find the median and sd across draws, as well as 90% intervals
 summ_tmb <- cbind(median = (apply(pred_tmb, 1, median)),
@@ -374,23 +388,24 @@ summ_tmb <- cbind(median = (apply(pred_tmb, 1, median)),
 pop.rast = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=popMatKenya$pop), 
                          res=c(5, 5))
 ras_med_tmb = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_tmb[, 1]), 
-                            res=c(5, 5))
+                            res=c(1433, ))
 ras_sdv_tmb = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_tmb[, 2]), 
                             res=c(5, 5))
 ras_lower_tmb = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_tmb[, 3]), 
                               res=c(5, 5))
 ras_upper_tmb = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_tmb[, 4]), 
                               res=c(5, 5))
-
+?rasterFromXYZ
 ## plot truth, pixels falling within/without the 90% interval,
 ##  post. median, and post sd
 
 # set the range for the truth and median
-rast.zrange <- range(c(dat$y/dat$n, values(ras_med_tmb)), na.rm = T)
-
+rast.zrange <- range(c(y, values(ras_med_tmb)), na.rm = T)
+library(raster)
+?rasterFromXYZ
 # plot tmb
 par(mfrow = c(2, 2))
-quilt.plot(dat$east, dat$north, dat$y/dat$n, main = 'Observations', col = (viridis(100)), 
+quilt.plot(dat$lon, dat$lat, y, main = 'Observations', col = (viridis(100)), 
            nx=30, ny=30)
 # plot(ras_inInt_tmb, main = 'Pixels where 90% CIs did not cover Truth')
 # points(dat$east, dat$north, pch=".")
@@ -417,130 +432,158 @@ points(dat$east, dat$north, pch=".")
 # 
 # 
 # # Section 3: Fitting and prediction with INLA ----
-# 
+myData$jitt = loc.jit
+myData$obs$y = y
+myData$obs$lin.pred = lin.pred
+myData$obs$epsilon = epsilon
+myData$truePar$epsSD = sigma.nugget
+myData$obs$covar = matrix(x, nrow = length(x), ncol = 1)
+myData$truePar$alpha = alpha
+myData$truePar$beta  = beta
+myData$mesh = mesh.s
+myData$spde = spde
+A.obs = inla.spde.make.A(mesh = mesh.s, loc = cbind(myData$obs$xCor, myData$obs$yCor))
+A.pred = inla.spde.make.A(mesh = mesh.s, loc = cbind(myData$pred$xCor, myData$pred$yCor))
+myData$A.obs=A.obs
+myData$A.pred=A.pred
+#Save  the simulated data set
+save(myData, u.sim, kenya.geo, file="myDataTMB.RData")
+
+
+# Formula
+formula = y ~ intercept + x + f(idx.space, model = spde.inla) - 1
+
+# Prior for nugget
+prior.nugget = list(prec = list(prior = 'pc.prec', param = c(0.5, 0.5), initial = log(1/0.5^2)))
+
+# prior for fixed effects
+prec.int = 1e-4
+prec.beta = 1e-4
+
+
+
 # # * Prep inputs for INLA ----
-# design_matrix <- data.frame(int = rep(1, nrow(dat)))
-# A.proj = inla.spde.make.A(mesh = mesh.s, loc = cbind(dat$east, dat$north))
-# stack.obs <- inla.stack(tag='est',
-#                         data=list(Y = dat$y, ## response
-#                                   N = dat$n), ## binom trials
-#                         A=list(A.proj, ## A.proj for space
-#                                1),     ## 1 for design.mat
-#                         effects=list(
-#                           space = 1:mesh.s[['n']],
-#                           design_matrix))
-# 
+design_matrix <- data.frame(int = rep(1, 100))
+A.proj = inla.spde.make.A(mesh = mesh.s, loc = cbind(dat$lon, dat$lat))
+stack.obs <- inla.stack(tag='est',
+                         data=list(Y = y, ## response
+                                   N = 100), ## binom trials
+                         A=list(A.proj, ## A.proj for space
+                                1),     ## 1 for design.mat
+                         effects=list(
+                           space = 1:mesh.s[['n']],
+                           design_matrix))
+ 
 # ## define the INLA model
-# formula <- formula(Y ~ -1 + int + f(space, model = spde))
-# 
+formula <- formula(Y ~ -1 + int + f(space, model = spde))
 # # * Run INLA ----
-# i.fit <- inla(formula,
-#               data = inla.stack.data(stack.obs),
-#               control.predictor = list(A = inla.stack.A(stack.obs),
-#                                        compute = FALSE),
-#               control.fixed = list(expand.factor.strategy = 'inla',
-#                                    prec = list(default = 1 / alpha.pri[2] ^ 2)),
-#               control.inla = list(strategy = 'simplified.laplace',
-#                                   int.strategy = 'ccd'),
-#               control.compute=list(config = TRUE),
-#               family = 'binomial',
-#               Ntrials = N,
-#               verbose = FALSE,
-#               keep = FALSE)
+i.fit <- inla(formula,
+              data = inla.stack.data(stack.obs),
+              control.predictor = list(A = inla.stack.A(stack.obs),
+                                       compute = FALSE),
+              control.fixed = list(expand.factor.strategy = 'inla',
+                                   prec = prec.beta,
+                                   prec.intercept = prec.int),
+              control.inla = list(strategy = 'simplified.laplace',
+                                  int.strategy = 'ccd'),
+              control.compute=list(config = TRUE),
+              family = 'gaussian',
+              verbose = FALSE,
+              keep = FALSE)
 # 
-# # * INLA Posterior Sampling ----
-# # i.draws <- inla.posterior.sample(n = 500, i.fit,
-# #                                  use.improved.mean = TRUE,
-# #                                  skew.corr = TRUE)
-# i.draws <- inla.posterior.sample(n = 500, i.fit,
-#                                  use.improved.mean = TRUE)
-# 
-# ## summarize the draws
-# par_names <- rownames(i.draws[[1]][['latent']])
-# s_idx <- grep('^space.*', par_names)
-# a_idx <- which(!c(1:length(par_names)) %in%
-#                  grep('^space.*|Predictor|clust.id', par_names))
-# 
-# # project from mesh to raster, add intercept
-# pred_s <- sapply(i.draws, function (x) x[['latent']][s_idx])
-# pred_inla <- as.matrix(A.pred %*% pred_s)
-# alpha_inla_draws <- sapply(i.draws, function (x) x[['latent']][a_idx])
-# pred_inla <- sweep(pred_inla, 2, alpha_inla_draws, '+')
-# 
-# # convert to probability scale
-# pred_inla = expit(pred_inla)
-# 
-# ## find the median and sd across draws, as well as 90% intervals
-# summ_inla <- cbind(median = (apply(pred_inla, 1, median)),
-#                    sd     = (apply(pred_inla, 1, sd)),
-#                    lower = (apply(pred_inla, 1, quantile, .05)),
-#                    upper = (apply(pred_inla, 1, quantile, .95)))
-# 
-# # * Plot INLA results ----
-# ## make summary rasters
-# ras_med_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 1]), 
-#                              res=c(5, 5))
-# ras_sdv_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 2]), 
-#                              res=c(5, 5))
-# ras_lower_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 3]), 
-#                                res=c(5, 5))
-# ras_upper_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 4]), 
-#                                res=c(5, 5))
-# 
-# ## plot truth, pixels falling within/without the 90% interval,
-# ##  post. median, and post sd
-# 
-# # set the range for the truth and median
-# # rast.zrange <- range(c(dat$y/dat$n, values(ras_med_inla)), na.rm = T)
-# 
-# # plot
-# par(mfrow = c(2, 2))
-# quilt.plot(dat$east, dat$north, dat$y/dat$n, main = 'Observations', col = (viridis(100)), nx=30, ny=30)
-# # points(dat[, .(x, y)])
-# # plot(ras_inInt_inla, main = 'Pixels where 90% CIs did not cover Truth')
-# # points(dat$east, dat$north, pch=".")
-# plot(ras_med_inla, main = 'INLA Posterior Median',
-#      col = (viridis(100)))
+# * INLA Posterior Sampling ----
+#i.draws <- inla.posterior.sample(n = 500, i.fit,
+#                                  use.improved.mean = TRUE,
+#                                  skew.corr = TRUE)
+i.draws <- inla.posterior.sample(n = 500, i.fit,
+                                 use.improved.mean = TRUE)
+
+## summarize the draws
+par_names <- rownames(i.draws[[1]][['latent']])
+s_idx <- grep('^space.*', par_names)
+a_idx <- which(!c(1:length(par_names)) %in%
+                 grep('^space.*|Predictor|clust.id', par_names))
+
+# project from mesh to raster, add intercept
+pred_s <- sapply(i.draws, function (x) x[['latent']][s_idx])
+pred_inla <- data.matrix(A.pred %*% pred_s)
+alpha_inla_draws <- sapply(i.draws, function (x) x[['latent']][a_idx])
+pred_inla <- sweep(pred_inla, 2, alpha_inla_draws, '+')
+
+# convert to probability scale
+#pred_inla = expit(pred_inla)
+
+## find the median and sd across draws, as well as 90% intervals
+summ_inla <- cbind(median = (apply(pred_inla, 1, median)),
+                   sd     = (apply(pred_inla, 1, sd)),
+                   lower = (apply(pred_inla, 1, quantile, .05)),
+                   upper = (apply(pred_inla, 1, quantile, .95)))
+
+# * Plot INLA results ----
+## make summary rasters
+ras_med_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 1]),
+                             res=c(5, 5))
+ras_sdv_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 2]),
+                             res=c(5, 5))
+ras_lower_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 3]),
+                               res=c(5, 5))
+ras_upper_inla = rasterFromXYZ(data.frame(x=popMatKenya$east, y=popMatKenya$north, z=summ_inla[, 4]),
+                               res=c(5, 5))
+
+## plot truth, pixels falling within/without the 90% interval,
+##  post. median, and post sd
+
+# set the range for the truth and median
+# rast.zrange <- range(c(dat$y/dat$n, values(ras_med_inla)), na.rm = T)
+
+# plot
+par(mfrow = c(2, 2))
+quilt.plot(dat$east, dat$north, dat$y/dat$n, main = 'Observations', col = (viridis(100)), nx=30, ny=30)
+# points(dat[, .(x, y)])
+# plot(ras_inInt_inla, main = 'Pixels where 90% CIs did not cover Truth')
 # points(dat$east, dat$north, pch=".")
-# plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation')
-# points(dat$east, dat$north, pch=".")
-# 
-# # Section 4: Compare TMB and INLA ----
-# 
-# ## compare INLA and TMB meds and stdevs
-# med.zrange <- range(c(values(ras_med_tmb), values(ras_med_inla)), na.rm = T)
-# sdv.zrange <- c(0, max(c(values(ras_sdv_tmb), values(ras_sdv_inla)), na.rm = T))
-# 
-# par(mfrow = c(2, 2))
-# plot(ras_med_inla, main = 'INLA Posterior Median',
-#      zlim = med.zrange, col = (viridis(100)))
-# points(dat$east, dat$north, pch=".")
-# plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation',
-#      zlim = sdv.zrange)
-# points(dat$east, dat$north, pch=".")
-# plot(ras_med_tmb, main = 'TMB Posterior Median',
-#      zlim = med.zrange, col = (viridis(100)))
-# points(dat$east, dat$north, pch=".")
-# plot(ras_sdv_tmb, main = 'TMB Posterior Standard Deviation',
-#      zlim = sdv.zrange)
-# points(dat$east, dat$north, pch=".")
-# 
-# par(mfrow = c(1, 2))
-# plot(ras_med_tmb, main = 'TMB Posterior Median',
-#      col = (viridis(100)))
-# points(dat$east, dat$north, pch=".")
-# plot(ras_sdv_tmb, main = 'TMB Posterior Standard Deviation')
-# points(dat$east, dat$north, pch=".")
-# 
-# par(mfrow = c(1, 2))
-# plot(ras_med_inla, main = 'INLA Posterior Median',
-#      col = (viridis(100)))
-# points(dat$east, dat$north, pch=".")
-# plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation')
-# points(dat$east, dat$north, pch=".")
-# 
-# summary(SD0, 'report')
-# summary(i.fit)
+plot(ras_med_inla, main = 'INLA Posterior Median',
+     col = (viridis(100)))
+points(dat$east, dat$north, pch=".")
+plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation')
+points(dat$east, dat$north, pch=".")
+
+# Section 4: Compare TMB and INLA ----
+
+## compare INLA and TMB meds and stdevs
+med.zrange <- range(c(values(ras_med_tmb), values(ras_med_inla)), na.rm = T)
+sdv.zrange <- c(0, max(c(values(ras_sdv_tmb), values(ras_sdv_inla)), na.rm = T))
+
+par(mfrow = c(2, 2))
+plot(ras_med_inla, main = 'INLA Posterior Median',
+     zlim = med.zrange, col = (viridis(100)))
+points(dat$east, dat$north, pch=".")
+plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation',
+     zlim = sdv.zrange)
+points(dat$east, dat$north, pch=".")
+plot(ras_med_tmb, main = 'TMB Posterior Median',
+     zlim = med.zrange, col = (viridis(100)))
+points(dat$east, dat$north, pch=".")
+plot(ras_sdv_tmb, main = 'TMB Posterior Standard Deviation',
+     zlim = sdv.zrange)
+points(dat$east, dat$north, pch=".")
+
+par(mfrow = c(1, 2))
+plot(ras_med_tmb, main = 'TMB Posterior Median',
+     col = (viridis(100)))
+points(dat$east, dat$north, pch=".")
+plot(ras_sdv_tmb, main = 'TMB Posterior Standard Deviation')
+points(dat$east, dat$north, pch=".")
+
+par(mfrow = c(1, 2))
+plot(ras_med_inla, main = 'INLA Posterior Median',
+     col = (viridis(100)))
+points(dat$east, dat$north, pch=".")
+plot(ras_sdv_inla, main = 'INLA Posterior Standard Deviation')
+points(dat$east, dat$north, pch=".")
+
+summary(SD0, 'report')
+summary(i.fit)
 # 
 # # Section 5: Simple (non-jittered) Example ----
 # # * Compile TMB function and load it in ----
