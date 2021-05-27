@@ -258,7 +258,8 @@ matern.pri = c(range0, 0.5, USpatial, alphaSpatial)
 covMat=covMat+diag(length(covMat[,1]))*(sigma.nugget^2)
 
 # compile inputs for TMB
-data_full <- list(covMat = covMat, #covariance matrix of observations
+data_full <- list(stdNugget = sqrt(0.1), #nugget standard deviation
+                  covMat = covMat, #covariance matrix of observations
                   num_iUrban = length(ysUrban),  # Total number of urban observations
                   num_iRural = length(ysRural),  # Total number of rural observations
                   num_s = mesh.s[['n']], # num. of vertices in SPDE mesh
